@@ -40,12 +40,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Compiler.cs" />
     <Compile Include="Constants\Keywords.cs" />
     <Compile Include="Error.cs" />
     <Compile Include="Constants\ErrorDescriptions.cs" />
     <Compile Include="ICompilerContext.cs" />
     <Compile Include="Modules\IoModule.cs" />
-    <Compile Include="Modules\LexicalAnalyzer.cs" />
+    <Compile Include="Modules\LexicalAnalyzerModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Constants\Symbols.cs" />
     <Compile Include="TextPosition.cs" />

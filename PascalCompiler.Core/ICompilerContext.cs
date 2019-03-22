@@ -9,6 +9,7 @@ namespace PascalCompiler.Core
     public interface ICompilerContext
     {
         event Action<TextPosition, int> Error;
+        bool IsEnd { get; }
         void OnError(TextPosition position, int code);
         void WriteLine(string line);
         string ReadLine();

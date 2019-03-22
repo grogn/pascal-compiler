@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 
 namespace PascalCompiler.Core.Modules
 {
-    public class LexicalAnalyzer
+    public class LexicalAnalyzerModule
     {
         private const int maxInt = 32767;
         private IoModule _ioModule;
         private ICompilerContext _compilerContext;
         private TextPosition _tokenPosition;
         private char _currentChar;
-        public LexicalAnalyzer(ICompilerContext compiler, IoModule ioModule)
+        public LexicalAnalyzerModule(ICompilerContext compiler, IoModule ioModule)
         {
             _compilerContext = compiler;
             _ioModule = ioModule;
@@ -128,20 +128,22 @@ namespace PascalCompiler.Core.Modules
 
         private int ScanNumberConstant()
         {
-            var numInt = 0;
+            var number = 0;
+            _currentChar = _ioModule.PeekNextChar();
             while (_currentChar >= '0' && _currentChar <= '9')
             {
+                _currentChar = _ioModule.NextChar();
                 var digit = _currentChar - '0';
-                if (numInt < maxInt / 10 || (numInt == maxInt / 10 && digit <= maxInt % 10))
+                if (number < maxInt / 10 || (number == maxInt / 10 && digit <= maxInt % 10))
                 {
-                    numInt = 10 * numInt + digit;
+                    number = 10 * number + digit;
                 }
                 else
                 {
                     _compilerContext.OnError(_tokenPosition, 203);
-                    numInt = 0;
+                    number = 0;
                 }
-                _currentChar = _ioModule.NextChar();
+                _currentChar = _ioModule.PeekNextChar();
             }
 
             return Symbols.Intc;
@@ -149,7 +151,8 @@ namespace PascalCompiler.Core.Modules
 
         public int NextSymbol()
         {
-            int symbol = -1;
+            int symbol = Symbols.Endoffile;
+            _currentChar = _ioModule.NextChar();
             while (_currentChar == ' ')
             {
                 _currentChar = _ioModule.NextChar();
@@ -235,7 +238,7 @@ namespace PascalCompiler.Core.Modules
                 default:
                     if (_currentChar >= '0' && _currentChar <= '9')
                     {
-                        ScanNumberConstant();
+                        symbol = ScanNumberConstant();
                     }
                     break;
             }

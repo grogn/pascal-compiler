@@ -19,6 +19,11 @@ namespace PascalCompiler.Core.Modules
         {
             _compilerContext = compiler;
             _compilerContext.Error += AddError;
+            _errorsTable = new List<Error>();
+            _currentPosition.LineNumber = 1;
+            _currentPosition.CharNumber = -1;
+            _currentErrorNumber = 1;
+            ReadNextLine();
         }
         private void ReadNextLine()
         {
@@ -32,8 +37,8 @@ namespace PascalCompiler.Core.Modules
         {
             foreach (var error in _errorsTable)
             {
-                _compilerContext.WriteLine($"*{error.Number.ToString().PadLeft(3, '0')}* ошибка код {error.Code}");
-                _compilerContext.WriteLine($"***** TODO: {ErrorDescriptions.Get(error.Code)}");
+                _compilerContext.WriteLine($"*{error.Number.ToString().PadLeft(3, '0')}* {"".PadLeft(error.Position.CharNumber)}^ошибка код {error.Code}");
+                _compilerContext.WriteLine($"***** {ErrorDescriptions.Get(error.Code)}");
             }
         }
 
@@ -42,22 +47,34 @@ namespace PascalCompiler.Core.Modules
             _errorsTable.Add(new Error(_currentErrorNumber++, errorPosition, errorCode));
         }
 
+        public char PeekNextChar()
+        {
+            if (_currentPosition.CharNumber + 1 != _line.Length)
+                return _line[_currentPosition.CharNumber + 1];
+            return '\n';
+        }
+
         public char NextChar()
         {
-            if (_currentPosition.CharNumber == _line.Length - 1)
+            if (_currentPosition.CharNumber + 1 != _line.Length)
+            {
+                _currentPosition.CharNumber++;
+                return _line[_currentPosition.CharNumber];
+            }
+            else
             {
                 ListCurrentLine();
                 ListErrors();
                 _errorsTable.Clear();
                 ReadNextLine();
+                if (_line == null)
+                {
+                    return '\0';
+                }
                 _currentPosition.LineNumber++;
-                _currentPosition.CharNumber = 0;
+                _currentPosition.CharNumber = -1;
+                return '\n';
             }
-            else
-            {
-                _currentPosition.CharNumber++;
-            }
-            return _line[_currentPosition.CharNumber];
         }
     }
 }
