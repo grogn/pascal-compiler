@@ -111,9 +111,39 @@ namespace PascalCompiler.Core.Modules
 
             if (_currentChar == '*')
             {
-                _currentChar = _ioModule.NextChar();
-                _context.Symbol += _currentChar;
-                symbol = Symbols.Lcomment;
+                // Пропускаем весь комментарий
+                _currentChar = _ioModule.PeekNextChar();
+                while (true)
+                {
+                    if (_currentChar == '*')
+                    {
+                        _currentChar = _ioModule.NextChar();
+                        _currentChar = _ioModule.PeekNextChar();
+                        if (_currentChar == ')')
+                        {
+                            _currentChar = _ioModule.NextChar();
+                            symbol = NextSymbol();
+                            break;
+                        }
+
+                        if (_currentChar == '\0')
+                        {
+                            _context.OnError(_context.CharNumber, 86);
+                            symbol = NextSymbol();
+                            break;
+                        }
+                    }
+
+                    if (_currentChar == '\0')
+                    {
+                        _context.OnError(_context.CharNumber, 86);
+                        symbol = NextSymbol();
+                        break;
+                    }
+
+                    _currentChar = _ioModule.NextChar();
+                    _currentChar = _ioModule.PeekNextChar();
+                }
             }
             else
             {
@@ -238,7 +268,7 @@ namespace PascalCompiler.Core.Modules
                 _currentChar = _ioModule.PeekNextChar();
             }
 
-            var symbol = 0;
+            var symbol = Symbols.Ident;
 
             return symbol;
         }

@@ -27,23 +27,17 @@ namespace PascalCompiler.Core.Modules
         private void ReadNextLine()
         {
             _line = _context.SourceCodeDispatcher.ReadLine();
+            ListCurrentLine();
         }
         private void ListCurrentLine()
         {
-            _context.SourceCodeDispatcher.WriteLine($" {_context.LineNumber.ToString().PadLeft(3)}  {_line}");
-        }
-        private void ListErrors()
-        {
-            foreach (var error in _errorsTable)
-            {
-                _context.SourceCodeDispatcher.WriteLine($"*{error.Number.ToString().PadLeft(3, '0')}* {"".PadLeft(error.Position)}^ошибка код {error.Code}");
-                _context.SourceCodeDispatcher.WriteLine($"***** {ErrorDescriptions.Get(error.Code)}");
-            }
+            _context.SourceCodeDispatcher.WriteLine($" {_context.LineNumber++.ToString().PadLeft(3)}  {_line}");
         }
 
         public void AddError(int errorPosition, int errorCode)
         {
-            _errorsTable.Add(new Error(_currentErrorNumber++, errorPosition, errorCode));
+            _context.SourceCodeDispatcher.WriteLine($"*{_currentErrorNumber++.ToString().PadLeft(3, '0')}* {"".PadLeft(errorPosition)}^ошибка код {errorCode}");
+            _context.SourceCodeDispatcher.WriteLine($"***** {ErrorDescriptions.Get(errorCode)}");
         }
 
         public char PeekNextChar()
@@ -55,22 +49,18 @@ namespace PascalCompiler.Core.Modules
 
         public char NextChar()
         {
-            if (_context.CharNumber + 1 != _line.Length)
+            if (_line != null && _context.CharNumber + 1 != _line.Length)
             {
                 _context.CharNumber++;
                 return _line[_context.CharNumber];
             }
             else
             {
-                ListCurrentLine();
-                ListErrors();
-                _errorsTable.Clear();
                 ReadNextLine();
                 if (_line == null)
                 {
                     return '\0';
                 }
-                _context.LineNumber++;
                 _context.CharNumber = -1;
                 return '\n';
             }
