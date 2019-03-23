@@ -9,10 +9,10 @@ namespace PascalCompiler.Core
     public class Error
     {
         public int Number { get; }
-        public TextPosition Position { get; }
+        public int Position { get; }
         public int Code { get; }
 
-        public Error(int number, TextPosition position, int code)
+        public Error(int number, int position, int code)
         {
             Number = number;
             Position = position;

@@ -7,23 +7,17 @@ using PascalCompiler.Core;
 
 namespace PascalCompiler.Test
 {
-    public class TestCompilerContext : ICompilerContext
+    public class TestSourceCodeDispatcher : ISourceCodeDispatcher
     {
-        public event Action<TextPosition, int> Error;
         private Queue<string> _code;
         public List<string> Result { get; }
 
         public bool IsEnd { get; private set; }
 
-        public TestCompilerContext(Queue<string> code)
+        public TestSourceCodeDispatcher(Queue<string> code)
         {
             _code = code;
             Result = new List<string>();
-        }
-
-        public void OnError(TextPosition position, int code)
-        {
-            Error?.Invoke(position, code);
         }
 
         public string ReadLine()
@@ -39,6 +33,11 @@ namespace PascalCompiler.Test
         public void WriteLine(string line)
         {
             Result.Add(line);
+        }
+
+        public void Close()
+        {
+
         }
     }
 }

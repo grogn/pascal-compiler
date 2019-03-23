@@ -50,7 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="LexicalAnalyzerModuleTests.cs" />
-    <Compile Include="TestCompilerContext.cs" />
+    <Compile Include="TestSourceCodeDispatcher.cs" />
     <Compile Include="IoMoudleTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

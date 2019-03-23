@@ -47,7 +47,7 @@ namespace PascalCompiler.Core.Constants
         public const int Point = 61;
 
         /// <summary>
-        /// ^    
+        /// '^'    
         /// </summary>
         public const int Arrow = 62;
 
@@ -171,6 +171,10 @@ namespace PascalCompiler.Core.Constants
         /// код конца файла         
         /// </summary>
         public const int Endoffile = 253;
+        /// <summary>
+        /// код конца файла         
+        /// </summary>
+        public const int Endofline = 254;
 
         /// <summary>
         /// признак конца последовательности целых чисел 

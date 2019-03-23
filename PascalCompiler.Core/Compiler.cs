@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,23 +10,46 @@ namespace PascalCompiler.Core
 {
     public class Compiler
     {
-        private readonly ICompilerContext _context;
+        private readonly ISourceCodeDispatcher _sourceCodeDispatcher;
+        private readonly Context _context;
         private readonly IoModule _ioModule;
         private readonly LexicalAnalyzerModule _lexicalAnalyzerModule;
+        private Logger _logger;
 
-        public Compiler(ICompilerContext context)
+        public Compiler(ISourceCodeDispatcher sourceCodeDispatcher)
         {
-            _context = context;
-            _ioModule = new IoModule(context);
-            _lexicalAnalyzerModule = new LexicalAnalyzerModule(context, _ioModule);
+            _context = new Context(sourceCodeDispatcher);
+            _sourceCodeDispatcher = sourceCodeDispatcher;
+            _ioModule = new IoModule(_context);
+            _lexicalAnalyzerModule = new LexicalAnalyzerModule(_context, _ioModule);
+            _logger = new Logger("logs.txt");
+        }
+
+        public void Log(string line)
+        {
+            _logger.Log(line);
         }
 
         public void Start()
         {
-            while (!_context.IsEnd)
+            var symbols = new List<string>();
+            while (!_sourceCodeDispatcher.IsEnd)
             {
-                _lexicalAnalyzerModule.NextSymbol();
+                var symbol = _lexicalAnalyzerModule.NextSymbol();
+                if (_context.Symbol == "\n")
+                {
+                    Log(string.Join("|", symbols));
+                    symbols.Clear();
+                }
+                else
+                {
+                    symbols.Add(_context.Symbol);
+                }
             }
+            Log(string.Join("|", symbols));
+            symbols.Clear();
+            _sourceCodeDispatcher.Close();
+            _logger.Close();
         }
     }
 }

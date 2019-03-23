@@ -11,55 +11,54 @@ namespace PascalCompiler.Core.Modules
     {
         private string _line;
         private int _currentErrorNumber;
-        private List<Error> _errorsTable;
-        private TextPosition _currentPosition;
-        private readonly ICompilerContext _compilerContext;
+        private readonly List<Error> _errorsTable;
+        private readonly Context _context;
 
-        public IoModule(ICompilerContext compiler)
+        public IoModule(Context context)
         {
-            _compilerContext = compiler;
-            _compilerContext.Error += AddError;
+            _context = context;
+            _context.Error += AddError;
             _errorsTable = new List<Error>();
-            _currentPosition.LineNumber = 1;
-            _currentPosition.CharNumber = -1;
+            _context.LineNumber = 1;
+            _context.CharNumber = -1;
             _currentErrorNumber = 1;
             ReadNextLine();
         }
         private void ReadNextLine()
         {
-            _line = _compilerContext.ReadLine();
+            _line = _context.SourceCodeDispatcher.ReadLine();
         }
         private void ListCurrentLine()
         {
-            _compilerContext.WriteLine($" {_currentPosition.LineNumber.ToString().PadLeft(3)}  {_line}");
+            _context.SourceCodeDispatcher.WriteLine($" {_context.LineNumber.ToString().PadLeft(3)}  {_line}");
         }
         private void ListErrors()
         {
             foreach (var error in _errorsTable)
             {
-                _compilerContext.WriteLine($"*{error.Number.ToString().PadLeft(3, '0')}* {"".PadLeft(error.Position.CharNumber)}^ошибка код {error.Code}");
-                _compilerContext.WriteLine($"***** {ErrorDescriptions.Get(error.Code)}");
+                _context.SourceCodeDispatcher.WriteLine($"*{error.Number.ToString().PadLeft(3, '0')}* {"".PadLeft(error.Position)}^ошибка код {error.Code}");
+                _context.SourceCodeDispatcher.WriteLine($"***** {ErrorDescriptions.Get(error.Code)}");
             }
         }
 
-        public void AddError(TextPosition errorPosition, int errorCode)
+        public void AddError(int errorPosition, int errorCode)
         {
             _errorsTable.Add(new Error(_currentErrorNumber++, errorPosition, errorCode));
         }
 
         public char PeekNextChar()
         {
-            if (_currentPosition.CharNumber + 1 != _line.Length)
-                return _line[_currentPosition.CharNumber + 1];
+            if (_context.CharNumber + 1 != _line.Length)
+                return _line[_context.CharNumber + 1];
             return '\n';
         }
 
         public char NextChar()
         {
-            if (_currentPosition.CharNumber + 1 != _line.Length)
+            if (_context.CharNumber + 1 != _line.Length)
             {
-                _currentPosition.CharNumber++;
-                return _line[_currentPosition.CharNumber];
+                _context.CharNumber++;
+                return _line[_context.CharNumber];
             }
             else
             {
@@ -71,8 +70,8 @@ namespace PascalCompiler.Core.Modules
                 {
                     return '\0';
                 }
-                _currentPosition.LineNumber++;
-                _currentPosition.CharNumber = -1;
+                _context.LineNumber++;
+                _context.CharNumber = -1;
                 return '\n';
             }
         }
