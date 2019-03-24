@@ -9,61 +9,48 @@ namespace PascalCompiler.Core.Modules
 {
     public class IoModule
     {
-        private string _line;
         private int _currentErrorNumber;
-        private readonly List<Error> _errorsTable;
         private readonly Context _context;
 
         public IoModule(Context context)
         {
             _context = context;
             _context.Error += AddError;
-            _errorsTable = new List<Error>();
             _context.LineNumber = 1;
-            _context.CharNumber = -1;
+            _context.CharNumber = 0;
             _currentErrorNumber = 1;
             ReadNextLine();
         }
         private void ReadNextLine()
         {
-            _line = _context.SourceCodeDispatcher.ReadLine();
-            ListCurrentLine();
+            _context.Line = _context.SourceCodeDispatcher.ReadLine();
+            if (_context.Line != null)
+                ListCurrentLine();
         }
         private void ListCurrentLine()
         {
-            _context.SourceCodeDispatcher.WriteLine($" {_context.LineNumber++.ToString().PadLeft(3)}  {_line}");
+            _context.SourceCodeDispatcher.WriteLine($" {_context.LineNumber++.ToString().PadLeft(3)}  {_context.Line}");
         }
 
         public void AddError(int errorPosition, int errorCode)
         {
-            _context.SourceCodeDispatcher.WriteLine($"*{_currentErrorNumber++.ToString().PadLeft(3, '0')}* {"".PadLeft(errorPosition)}^ошибка код {errorCode}");
+            _context.SourceCodeDispatcher.WriteLine($"*{_currentErrorNumber++.ToString().PadLeft(3, '0')}* {"^".PadLeft(errorPosition)}ошибка код {errorCode}");
             _context.SourceCodeDispatcher.WriteLine($"***** {ErrorDescriptions.Get(errorCode)}");
         }
 
         public char PeekNextChar()
         {
-            if (_context.CharNumber + 1 != _line.Length)
-                return _line[_context.CharNumber + 1];
-            return '\n';
+            return _context.CharNumber < _context.Line.Length ? _context.Line[_context.CharNumber] : '\n';
         }
 
         public char NextChar()
         {
-            if (_line != null && _context.CharNumber + 1 != _line.Length)
-            {
-                _context.CharNumber++;
-                return _line[_context.CharNumber];
-            }
-            else
-            {
-                ReadNextLine();
-                if (_line == null)
-                {
-                    return '\0';
-                }
-                _context.CharNumber = -1;
-                return '\n';
-            }
+            if (_context.CharNumber != _context.Line.Length)
+                return _context.Line[_context.CharNumber++];
+
+            ReadNextLine();
+            _context.CharNumber = 0;
+            return _context.Line == null ? '\0' : '\n';
         }
     }
 }

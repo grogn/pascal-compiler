@@ -112,37 +112,20 @@ namespace PascalCompiler.Core.Modules
             if (_currentChar == '*')
             {
                 // Пропускаем весь комментарий
-                _currentChar = _ioModule.PeekNextChar();
-                while (true)
+                var prevChar = _currentChar;
+                _currentChar = _ioModule.NextChar();
+                while ((prevChar != '*' || _currentChar != ')') && 
+                        _currentChar != '\0')
                 {
-                    if (_currentChar == '*')
-                    {
-                        _currentChar = _ioModule.NextChar();
-                        _currentChar = _ioModule.PeekNextChar();
-                        if (_currentChar == ')')
-                        {
-                            _currentChar = _ioModule.NextChar();
-                            symbol = NextSymbol();
-                            break;
-                        }
-
-                        if (_currentChar == '\0')
-                        {
-                            _context.OnError(_context.CharNumber, 86);
-                            symbol = NextSymbol();
-                            break;
-                        }
-                    }
-
-                    if (_currentChar == '\0')
-                    {
-                        _context.OnError(_context.CharNumber, 86);
-                        symbol = NextSymbol();
-                        break;
-                    }
-
+                    prevChar = _currentChar;
                     _currentChar = _ioModule.NextChar();
-                    _currentChar = _ioModule.PeekNextChar();
+                }
+                if (prevChar == '*' && _currentChar == ')')
+                    symbol = NextSymbol();
+                else
+                {
+                    _context.OnError(_context.CharNumber, 86);
+                    symbol = Symbols.Endoffile;
                 }
             }
             else
@@ -162,6 +145,7 @@ namespace PascalCompiler.Core.Modules
             {
                 _currentChar = _ioModule.NextChar();
                 _context.Symbol += _currentChar;
+                _context.OnError(_context.CharNumber, 85);
                 symbol = Symbols.Rcomment;
             }
             else
@@ -198,17 +182,9 @@ namespace PascalCompiler.Core.Modules
 
         private int ScanString()
         {
-            _currentChar = _ioModule.PeekNextChar();
-            if (_currentChar == '\'')
-            {
-                _currentChar = _ioModule.NextChar();
-                _context.Symbol += _currentChar;
-
-                _context.OnError(_context.CharNumber, 75);
-                return Symbols.Charc;
-            }
-
-            if (_currentChar == '\n')
+            _currentChar = _ioModule.NextChar();
+            _context.Symbol += _currentChar;
+            if (_currentChar == '\'' || _currentChar == '\n')
             {
                 _context.OnError(_context.CharNumber, 75);
                 return Symbols.Charc;
@@ -217,10 +193,8 @@ namespace PascalCompiler.Core.Modules
             _currentChar = _ioModule.NextChar();
             _context.Symbol += _currentChar;
 
-            _currentChar = _ioModule.PeekNextChar();
             if (_currentChar == '\'')
             {
-                _currentChar = _ioModule.NextChar();
                 _context.Symbol += _currentChar;
                 return Symbols.Charc;
             }
@@ -229,11 +203,10 @@ namespace PascalCompiler.Core.Modules
                 _context.OnError(_context.CharNumber, 75);
                 return Symbols.Charc;
             }
-            var length = 2;
-            _currentChar = _ioModule.PeekNextChar();
+            _currentChar = _ioModule.NextChar();
+            var length = 3;
             while (_currentChar != '\'')
             {
-                _currentChar = _ioModule.NextChar();
                 _context.Symbol += _currentChar;
                 length++;
                 if (length > MaxString)
@@ -241,13 +214,14 @@ namespace PascalCompiler.Core.Modules
                     _context.OnError(_context.CharNumber, 76);
                     length = 0;
                 }
-                _currentChar = _ioModule.PeekNextChar();
+                _currentChar = _ioModule.NextChar();
                 if (_currentChar == '\n')
                 {
                     _context.OnError(_context.CharNumber, 75);
                     return Symbols.Stringc;
                 }
             }
+            _context.Symbol += _currentChar;
 
             return Symbols.Stringc;
         }
@@ -271,6 +245,31 @@ namespace PascalCompiler.Core.Modules
             var symbol = Symbols.Ident;
 
             return symbol;
+        }
+
+        private int ScanFlpar()
+        {
+            var symbol = Symbols.Flpar;
+            _currentChar = _ioModule.NextChar();
+            while (_currentChar != '}' && _currentChar != '\0')
+            {
+                _currentChar = _ioModule.NextChar();
+            }
+            if (_currentChar == '}')
+                symbol = NextSymbol();
+            else
+            {
+                _context.OnError(_context.CharNumber, 86);
+                symbol = Symbols.Endoffile;
+            }
+
+            return symbol;
+        }
+
+        private int ScanFrpar()
+        {
+            _context.OnError(_context.CharNumber, 85);
+            return Symbols.Frpar;
         }
 
         public int NextSymbol()
@@ -314,6 +313,14 @@ namespace PascalCompiler.Core.Modules
                     symbolCode = ScanLeftpar();
                     break;
 
+                case '{':
+                    symbolCode = ScanFlpar();
+                    break;
+
+                case '}':
+                    symbolCode = ScanFrpar();
+                    break;
+
                 case ')':
                     symbolCode = Symbols.Rightpar;
                     break;
@@ -346,14 +353,6 @@ namespace PascalCompiler.Core.Modules
                     symbolCode = Symbols.Rbracket;
                     break;
 
-                case '{':
-                    symbolCode = Symbols.Flpar;
-                    break;
-
-                case '}':
-                    symbolCode = Symbols.Frpar;
-                    break;
-
                 case '+':
                     symbolCode = Symbols.Plus;
                     break;
@@ -364,6 +363,10 @@ namespace PascalCompiler.Core.Modules
 
                 case '\n':
                     symbolCode = Symbols.Endofline;
+                    break;
+
+                case '\0':
+                    symbolCode = Symbols.Endoffile;
                     break;
                 default:
                     if (_currentChar >= '0' && _currentChar <= '9')
