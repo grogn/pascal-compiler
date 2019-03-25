@@ -22,7 +22,7 @@ namespace PascalCompiler.Core
             _sourceCodeDispatcher = sourceCodeDispatcher;
             _ioModule = new IoModule(_context);
             _lexicalAnalyzerModule = new LexicalAnalyzerModule(_context, _ioModule);
-            _logger = new Logger("logs.txt");
+            _logger = new Logger("../../Test/logs.txt");
         }
 
         public void Log(string line)

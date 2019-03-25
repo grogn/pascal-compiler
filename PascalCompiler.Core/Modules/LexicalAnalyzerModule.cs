@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Symbols = PascalCompiler.Core.Constants.Symbols;
 
 namespace PascalCompiler.Core.Modules
 {
@@ -158,70 +159,101 @@ namespace PascalCompiler.Core.Modules
 
         private int ScanNumberConstant()
         {
-            var number = _currentChar - '0';
+            var integerPart = _currentChar - '0';
+            var listIntegerError = false;
             _currentChar = _ioModule.PeekNextChar();
             while (_currentChar >= '0' && _currentChar <= '9')
             {
                 _currentChar = _ioModule.NextChar();
                 _context.Symbol += _currentChar;
                 var digit = _currentChar - '0';
-                if (number < MaxInt / 10 || (number == MaxInt / 10 && digit <= MaxInt % 10))
-                {
-                    number = 10 * number + digit;
-                }
+                if (!listIntegerError && (integerPart < MaxInt / 10 || (integerPart == MaxInt / 10 && digit <= MaxInt % 10)))
+                    integerPart = 10 * integerPart + digit;
                 else
-                {
-                    _context.OnError(_context.CharNumber, 203);
-                    number = 0;
-                }
+                    listIntegerError = true;
                 _currentChar = _ioModule.PeekNextChar();
             }
 
-            return Symbols.Intc;
+            if (_currentChar != '.')
+            {
+                if (listIntegerError)
+                    _context.OnError(_context.CharNumber, 203);
+                return Symbols.Intc;
+            }
+
+            _ioModule.NextChar();
+            _context.Symbol += _currentChar;
+            _currentChar = _ioModule.PeekNextChar();
+
+            if (_currentChar < '0' || _currentChar > '9')
+            {
+                _context.OnError(_context.CharNumber, 201);
+                return Symbols.Floatc;
+            }
+
+            var floatPart = 0;
+            var listFloatError = false;
+            while (_currentChar >= '0' && _currentChar <= '9')
+            {
+                _currentChar = _ioModule.NextChar();
+                _context.Symbol += _currentChar;
+                var digit = _currentChar - '0';
+                if (!listFloatError && (floatPart < MaxInt / 10 || (floatPart == MaxInt / 10 && digit <= MaxInt % 10)))
+                    floatPart = 10 * floatPart + digit;
+                else
+                    listFloatError = true;
+                _currentChar = _ioModule.PeekNextChar();
+            }
+
+            if (listIntegerError || listFloatError)
+                _context.OnError(_context.CharNumber, 207);
+
+            return Symbols.Floatc;
         }
 
         private int ScanString()
         {
-            _currentChar = _ioModule.NextChar();
-            _context.Symbol += _currentChar;
-            if (_currentChar == '\'' || _currentChar == '\n')
+            _ioModule.NextChar();
+            _context.Symbol += _context.Char;
+            if (_context.Char == '\'' || _context.Char == '\n')
             {
                 _context.OnError(_context.CharNumber, 75);
                 return Symbols.Charc;
             }
 
-            _currentChar = _ioModule.NextChar();
-            _context.Symbol += _currentChar;
+            _ioModule.NextChar();
+            _context.Symbol += _context.Char;
 
-            if (_currentChar == '\'')
+            if (_context.Char == '\'')
             {
-                _context.Symbol += _currentChar;
+                _context.Symbol += _context.Char;
                 return Symbols.Charc;
             }
-            if (_currentChar == '\n')
+
+            if (_context.Char == '\n')
             {
                 _context.OnError(_context.CharNumber, 75);
                 return Symbols.Charc;
             }
-            _currentChar = _ioModule.NextChar();
-            var length = 3;
-            while (_currentChar != '\'')
+
+            _ioModule.NextChar();
+            var length = 2;
+            var listError = false;
+            while (_context.Char != '\'')
             {
-                _context.Symbol += _currentChar;
-                length++;
-                if (length > MaxString)
-                {
-                    _context.OnError(_context.CharNumber, 76);
-                    length = 0;
-                }
-                _currentChar = _ioModule.NextChar();
-                if (_currentChar == '\n')
+                _context.Symbol += _context.Char;
+                if (length++ > MaxString)
+                    listError = true;
+                _ioModule.NextChar();
+                if (_context.Char == '\n')
                 {
                     _context.OnError(_context.CharNumber, 75);
                     return Symbols.Stringc;
                 }
             }
-            _context.Symbol += _currentChar;
+            _context.Symbol += _context.Char;
+            if (listError)
+                _context.OnError(_context.CharNumber, 76);
 
             return Symbols.Stringc;
         }
@@ -233,7 +265,8 @@ namespace PascalCompiler.Core.Modules
             _currentChar = _ioModule.PeekNextChar();
             while ((_currentChar >= 'a' && _currentChar <= 'z' ||
                     _currentChar >= 'A' && _currentChar <= 'Z' ||
-                    _currentChar >= '0' && _currentChar <= '9') && nameLength <= MaxName)
+                    _currentChar >= '0' && _currentChar <= '9' ||
+                    _currentChar == '_') && nameLength <= MaxName)
             {
                 _currentChar = _ioModule.NextChar();
                 _context.Symbol += _currentChar;
@@ -249,12 +282,12 @@ namespace PascalCompiler.Core.Modules
 
         private int ScanFlpar()
         {
-            var symbol = Symbols.Flpar;
+            int symbol;
             _currentChar = _ioModule.NextChar();
+
             while (_currentChar != '}' && _currentChar != '\0')
-            {
                 _currentChar = _ioModule.NextChar();
-            }
+
             if (_currentChar == '}')
                 symbol = NextSymbol();
             else
@@ -277,7 +310,8 @@ namespace PascalCompiler.Core.Modules
             var symbolCode = Symbols.Endoffile;
             _currentChar = _ioModule.NextChar();
             _context.Symbol = _currentChar.ToString();
-            while (_currentChar == ' ')
+            // TODO: табы под вопросом - неправильно отображается позиция ошибки
+            while (_currentChar == ' ' || _currentChar == '\t')
             {
                 _currentChar = _ioModule.NextChar();
                 _context.Symbol = _currentChar.ToString();

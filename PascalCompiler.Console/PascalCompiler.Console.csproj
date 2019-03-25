@@ -55,5 +55,10 @@
       <Name>PascalCompiler.Core</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="Test\input.txt" />
+    <Content Include="Test\listing.txt" />
+    <Content Include="Test\logs.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

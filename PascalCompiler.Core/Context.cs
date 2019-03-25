@@ -28,6 +28,8 @@ namespace PascalCompiler.Core
         public Context(ISourceCodeDispatcher sourceCodeDispatcher)
         {
             SourceCodeDispatcher = sourceCodeDispatcher;
+            LineNumber = 1;
+            ErrorNumber = 1;
         }
 
         public void OnError(int position, int code)
