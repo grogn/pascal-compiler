@@ -8,7 +8,7 @@ namespace PascalCompiler.Core
 {
     public class Context
     {
-        public event Action<int, int> Error;
+        public event Action<Error> Error;
 
         public bool IsEnd => SourceCodeDispatcher.IsEnd;
 
@@ -32,9 +32,9 @@ namespace PascalCompiler.Core
             ErrorNumber = 1;
         }
 
-        public void OnError(int position, int code)
+        public void OnError(Error error)
         {
-            Error?.Invoke(position, code);
+            Error?.Invoke(error);
         }
     }
 }

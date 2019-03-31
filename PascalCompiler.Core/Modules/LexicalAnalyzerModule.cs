@@ -11,7 +11,7 @@ namespace PascalCompiler.Core.Modules
     public class LexicalAnalyzerModule
     {
         private const int MaxInt = 32767;
-        private const int MaxString = 10;
+        private const int MaxString = 20;
         private const int MaxName = 15;
         private readonly IoModule _ioModule;
         private readonly Context _context;
@@ -21,6 +21,12 @@ namespace PascalCompiler.Core.Modules
         {
             _context = context;
             _ioModule = ioModule;
+        }
+
+        private void ListError(int errorCode)
+        {
+            var error = new Error(_context.CharNumber, errorCode);
+            _context.OnError(error);
         }
 
         private int ScanLater()
@@ -125,7 +131,7 @@ namespace PascalCompiler.Core.Modules
                     symbol = NextSymbol();
                 else
                 {
-                    _context.OnError(_context.CharNumber, 86);
+                    ListError(86);
                     symbol = Symbols.Endoffile;
                 }
             }
@@ -146,7 +152,7 @@ namespace PascalCompiler.Core.Modules
             {
                 _currentChar = _ioModule.NextChar();
                 _context.Symbol += _currentChar;
-                _context.OnError(_context.CharNumber, 85);
+                ListError(85);
                 symbol = Symbols.Rcomment;
             }
             else
@@ -177,7 +183,7 @@ namespace PascalCompiler.Core.Modules
             if (_currentChar != '.')
             {
                 if (listIntegerError)
-                    _context.OnError(_context.CharNumber, 203);
+                    ListError(203);
                 return Symbols.Intc;
             }
 
@@ -187,7 +193,7 @@ namespace PascalCompiler.Core.Modules
 
             if (_currentChar < '0' || _currentChar > '9')
             {
-                _context.OnError(_context.CharNumber, 201);
+                ListError(201);
                 return Symbols.Floatc;
             }
 
@@ -206,7 +212,7 @@ namespace PascalCompiler.Core.Modules
             }
 
             if (listIntegerError || listFloatError)
-                _context.OnError(_context.CharNumber, 207);
+                ListError(207);
 
             return Symbols.Floatc;
         }
@@ -217,7 +223,7 @@ namespace PascalCompiler.Core.Modules
             _context.Symbol += _context.Char;
             if (_context.Char == '\'' || _context.Char == '\n')
             {
-                _context.OnError(_context.CharNumber, 75);
+                ListError(75);
                 return Symbols.Charc;
             }
 
@@ -232,7 +238,7 @@ namespace PascalCompiler.Core.Modules
 
             if (_context.Char == '\n')
             {
-                _context.OnError(_context.CharNumber, 75);
+                ListError(75);
                 return Symbols.Charc;
             }
 
@@ -247,13 +253,13 @@ namespace PascalCompiler.Core.Modules
                 _ioModule.NextChar();
                 if (_context.Char == '\n')
                 {
-                    _context.OnError(_context.CharNumber, 75);
+                    ListError(75);
                     return Symbols.Stringc;
                 }
             }
             _context.Symbol += _context.Char;
             if (listError)
-                _context.OnError(_context.CharNumber, 76);
+                ListError(76);
 
             return Symbols.Stringc;
         }
@@ -261,7 +267,6 @@ namespace PascalCompiler.Core.Modules
         private int ScanName()
         {
             var nameLength = 1;
-            var name = string.Empty + _currentChar;
             _currentChar = _ioModule.PeekNextChar();
             while ((_currentChar >= 'a' && _currentChar <= 'z' ||
                     _currentChar >= 'A' && _currentChar <= 'Z' ||
@@ -270,12 +275,19 @@ namespace PascalCompiler.Core.Modules
             {
                 _currentChar = _ioModule.NextChar();
                 _context.Symbol += _currentChar;
-                name += _currentChar;
                 nameLength++;
                 _currentChar = _ioModule.PeekNextChar();
             }
 
-            var symbol = Symbols.Ident;
+            int symbol;
+            if (Keywords.ByName.ContainsKey(_context.Symbol.ToLower()))
+            {
+                symbol = Keywords.ByName[_context.Symbol.ToLower()];
+            }
+            else
+            {
+                symbol = Symbols.Ident;
+            }
 
             return symbol;
         }
@@ -292,7 +304,7 @@ namespace PascalCompiler.Core.Modules
                 symbol = NextSymbol();
             else
             {
-                _context.OnError(_context.CharNumber, 86);
+                ListError(86);
                 symbol = Symbols.Endoffile;
             }
 
@@ -301,7 +313,7 @@ namespace PascalCompiler.Core.Modules
 
         private int ScanFrpar()
         {
-            _context.OnError(_context.CharNumber, 85);
+            ListError(85);
             return Symbols.Frpar;
         }
 
@@ -413,12 +425,16 @@ namespace PascalCompiler.Core.Modules
                     }
                     else
                     {
-                        _context.OnError(_context.CharNumber, 6);
+                        ListError(6);
                     }
 
                     break;
             }
 
+            _context.SymbolCode = symbolCode;
+            Logger.LogSymbol(_context.Symbol);
+            if (_context.SymbolCode == Symbols.Endofline)
+                return NextSymbol();
             return symbolCode;
         }
     }

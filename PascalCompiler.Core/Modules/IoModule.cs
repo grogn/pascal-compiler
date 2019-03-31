@@ -31,10 +31,10 @@ namespace PascalCompiler.Core.Modules
             _context.SourceCodeDispatcher.WriteLine($" {_context.LineNumber++.ToString().PadLeft(3)}  {_context.Line}");
         }
 
-        private void ListError(int errorPosition, int errorCode)
+        private void ListError(Error error)
         {
-            _context.SourceCodeDispatcher.WriteLine($"*{_context.ErrorNumber++.ToString().PadLeft(3, '0')}* {"^".PadLeft(errorPosition)}ошибка код {errorCode}");
-            _context.SourceCodeDispatcher.WriteLine($"***** {ErrorDescriptions.Get(errorCode)}");
+            _context.SourceCodeDispatcher.WriteLine($"*{_context.ErrorNumber++.ToString().PadLeft(3, '0')}* {"^".PadLeft(error.Position)}ошибка код {error.Code}");
+            _context.SourceCodeDispatcher.WriteLine($"***** {ErrorDescriptions.Get(error.Code)}");
         }
 
         public char PeekNextChar()

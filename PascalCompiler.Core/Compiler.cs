@@ -14,7 +14,7 @@ namespace PascalCompiler.Core
         private readonly Context _context;
         private readonly IoModule _ioModule;
         private readonly LexicalAnalyzerModule _lexicalAnalyzerModule;
-        private Logger _logger;
+        private readonly SyntacticalAnalyzerModule _syntacticalAnalyzerModule;
 
         public Compiler(ISourceCodeDispatcher sourceCodeDispatcher)
         {
@@ -22,34 +22,14 @@ namespace PascalCompiler.Core
             _sourceCodeDispatcher = sourceCodeDispatcher;
             _ioModule = new IoModule(_context);
             _lexicalAnalyzerModule = new LexicalAnalyzerModule(_context, _ioModule);
-            _logger = new Logger("../../Test/logs.txt");
-        }
-
-        public void Log(string line)
-        {
-            _logger.Log(line);
+            _syntacticalAnalyzerModule = new SyntacticalAnalyzerModule(_context, _lexicalAnalyzerModule);
         }
 
         public void Start()
         {
-            var symbols = new List<string>();
-            while (!_sourceCodeDispatcher.IsEnd)
-            {
-                var symbol = _lexicalAnalyzerModule.NextSymbol();
-                if (_context.Symbol == "\n")
-                {
-                    Log(string.Join("|", symbols));
-                    symbols.Clear();
-                }
-                else
-                {
-                    symbols.Add(_context.Symbol);
-                }
-            }
-            Log(string.Join("|", symbols));
-            symbols.Clear();
+            _syntacticalAnalyzerModule.Program();
             _sourceCodeDispatcher.Close();
-            _logger.Close();
+            Logger.Close();
         }
     }
 }

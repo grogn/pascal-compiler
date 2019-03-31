@@ -8,12 +8,67 @@ namespace PascalCompiler.Core.Constants
 {
     public static class Keywords
     {
+        public static Dictionary<string, int> ByName = new Dictionary<string, int>
+        {
+            ["do"] = Dosy,
+            ["if"] = Ifsy,
+            ["in"] = Insy,
+            ["of"] = Ofsy,
+            ["or"] = Orsy,
+            ["to"] = Tosy,
+            ["and"] = Andsy,
+            ["div"] = Divsy,
+            ["end"] = Endsy,
+            ["for"] = Forsy,
+            ["mod"] = Modsy,
+            ["nil"] = Nilsy,
+            ["not"] = Notsy,
+            ["set"] = Setsy,
+            ["var"] = Varsy,
+            ["case"] = Casesy,
+            ["else"] = Elsesy,
+            ["file"] = Filesy,
+            ["goto"] = Gotosy,
+            ["only"] = Onlysy,
+            ["then"] = Thensy,
+            ["type"] = Typesy,
+            ["unit"] = Unitsy,
+            ["uses"] = Usessy,
+            ["with"] = Withsy,
+            ["array"] = Arraysy,
+            ["begin"] = Beginsy,
+            ["const"] = Constsy,
+            ["label"] = Labelsy,
+            ["until"] = Untilsy,
+            ["while"] = Whilesy,
+            ["downto"] = Downtosy,
+            ["export"] = Exportsy,
+            ["import"] = Importsy,
+            ["module"] = Modulesy,
+            ["packed"] = Packedsy,
+            ["record"] = Recordsy,
+            ["repeat"] = Repeatsy,
+            ["vector"] = Vectorsy,
+            ["string"] = Stringsy,
+            ["forward"] = Forwardsy,
+            ["process"] = Processsy,
+            ["program"] = Programsy,
+            ["segment"] = Segmentsy,
+            ["function"] = Functionsy,
+            ["separate"] = Separatesy,
+            ["interface"] = Interfacesy,
+            ["procedure"] = Proceduresy,
+            ["qualified"] = Qualifiedsy,
+            ["implementation"] = Implementationsy,
+        };
+
         public const int Dosy = 54;
         public const int Ifsy = 56;
         public const int Insy = 22;
         public const int Ofsy = 8;
         public const int Orsy = 23;           /* разделитель  !   */
         public const int Tosy = 55;
+        
 
         /* ключевые  слова  длины  2 */
 

@@ -99,7 +99,7 @@ namespace PascalCompiler.Test
             analyzer.NextSymbol();
 
             Assert.AreEqual("   1  123456789", sourceCodeDispatcher.Result[0]);
-            Assert.AreEqual("*001*      ^ошибка код 203", sourceCodeDispatcher.Result[1]);
+            Assert.AreEqual("*001*         ^ошибка код 203", sourceCodeDispatcher.Result[1]);
             Assert.AreEqual("***** целая константа превышает предел", sourceCodeDispatcher.Result[2]);
         }
 
@@ -171,7 +171,7 @@ namespace PascalCompiler.Test
         [TestMethod]
         public void ShouldErrorWhenStringIsTooBig()
         {
-            var text = new Queue<string>(new[] { "'123456789123'" });
+            var text = new Queue<string>(new[] { "'1234567891123sadfsadfasdf23asdghfds'" });
             var sourceCodeDispatcher = new TestSourceCodeDispatcher(text);
             var context = new Context(sourceCodeDispatcher);
 
@@ -183,8 +183,8 @@ namespace PascalCompiler.Test
                 analyzer.NextSymbol();
             }
 
-            Assert.AreEqual("   1  '123456789123'", sourceCodeDispatcher.Result[0]);
-            Assert.AreEqual("*001*           ^ошибка код 76", sourceCodeDispatcher.Result[1]);
+            Assert.AreEqual("   1  '1234567891123sadfsadfasdf23asdghfds'", sourceCodeDispatcher.Result[0]);
+            Assert.AreEqual("*001*                                     ^ошибка код 76", sourceCodeDispatcher.Result[1]);
             Assert.AreEqual("***** слишком длинная строковая константа", sourceCodeDispatcher.Result[2]);
         }
     }

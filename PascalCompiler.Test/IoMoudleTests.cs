@@ -77,7 +77,7 @@ namespace PascalCompiler.Test
             var context = new Context(sourceCodeDispatcher);
 
             var ioModule = new IoModule(context);
-            context.OnError(1, 111);
+            context.OnError(new Error(1, 111));
             while (!context.IsEnd)
             {
                 ioModule.NextChar();
@@ -100,7 +100,7 @@ namespace PascalCompiler.Test
             while (!context.IsEnd)
             {
                 ioModule.NextChar();
-                context.OnError(i++, 111);
+                context.OnError(new Error(i++, 111));
             }
 
             Assert.AreEqual("   1  foo", sourceCodeDispatcher.Result[0]);

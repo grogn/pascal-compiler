@@ -7,23 +7,24 @@ using System.Threading.Tasks;
 
 namespace PascalCompiler.Core
 {
-    public class Logger
+    public static class Logger
     {
-        private StreamWriter _writer;
+        private static StreamWriter _symbolsWriter;
 
-        public Logger(string inputFile)
+        static Logger()
         {
-            _writer = new StreamWriter(inputFile);
+            _symbolsWriter = new StreamWriter("../../Test/logs.txt");
         }
 
-        public void Log(string line)
+        public static void LogSymbol(string symbol)
         {
-            _writer.WriteLine(line);
+            _symbolsWriter.Write(symbol);
+            _symbolsWriter.Write("|");
         }
 
-        public void Close()
+        public static void Close()
         {
-            _writer.Close();
+            _symbolsWriter.Close();
         }
     }
 }

@@ -49,6 +49,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LexicalAnalyzerNumberTests.cs" />
     <Compile Include="LexicalAnalyzerModuleTests.cs" />
     <Compile Include="TestSourceCodeDispatcher.cs" />
     <Compile Include="IoMoudleTests.cs" />
