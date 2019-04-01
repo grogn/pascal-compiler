@@ -18,6 +18,11 @@ namespace PascalCompiler.Core.Modules
             _lexicalAnalyzerModule = lexicalAnalyzerModule;
         }
 
+        private void ListError(int errorCode)
+        {
+            _context.OnError(new Error(_context.CharNumber, errorCode));
+        }
+
         private void Accept(int symbolCode)
         {
             if (_context.SymbolCode == symbolCode)
@@ -26,597 +31,783 @@ namespace PascalCompiler.Core.Modules
                 _context.OnError(new Error(_context.CharNumber, symbolCode));
         }
 
+        private bool SymbolBelong(IEnumerable<int> starters)
+        {
+            return starters.Contains(_context.SymbolCode);
+        }
+
+        private IEnumerable<int> Union(IEnumerable<int> firstSet, IEnumerable<int> secondSet)
+        {
+            return firstSet.Union(secondSet);
+        }
+
+        private void SkipTo(IEnumerable<int> starters)
+        {
+            while (!starters.Contains(_context.SymbolCode))
+                _lexicalAnalyzerModule.NextSymbol();
+        }
+
+        private void SkipTo2(IEnumerable<int> starters, IEnumerable<int> followers)
+        {
+            while (!_context.IsEnd && !starters.Contains(_context.SymbolCode) && !followers.Contains(_context.SymbolCode))
+                _lexicalAnalyzerModule.NextSymbol();
+        }
+
         public void Program()
         {
             _lexicalAnalyzerModule.NextSymbol();
             Accept(Keywords.Programsy);
             Accept(Symbols.Ident);
             Accept(Symbols.Semicolon);
-            Block();
+            Block(Followers.Block);
             Accept(Symbols.Point);
         }
 
-        private void Block()
+        private void Block(IEnumerable<int> followers)
         {
-            // TODO: labelpart
-            ConstPart();
-            TypePart();
-            VarPart();
-            // TODO: procfuncpart
-            StatementsPart();
+            if (!SymbolBelong(Starters.Block))
+            {
+                ListError(18);
+                SkipTo2(Starters.Block, followers);
+            }
+            if (SymbolBelong(Starters.Block))
+            {
+                var symbols = Union(Followers.ConstPart, followers);
+                ConstPart(symbols);
+                symbols = Union(Followers.TypePart, followers);
+                TypePart(symbols);
+                symbols = Union(Followers.VarPart, followers);
+                VarPart(symbols);
+                StatementsPart(followers);
+                if (!SymbolBelong(followers))
+                {
+                    ListError(6);
+                    SkipTo(followers);
+                }
+            }
         }
 
-        private void ConstPart()
+        private void ConstPart(IEnumerable<int> followers)
         {
+            if (!SymbolBelong(Starters.ConstPart))
+            {
+                ListError(18);
+                SkipTo2(Starters.ConstPart, followers);
+            }
             if (_context.SymbolCode == Keywords.Constsy)
             {
                 Accept(Keywords.Constsy);
+                var symbols = Union(Followers.ConstDeclaration, followers);
                 do
                 {
-                    ConstDeclaration();
+                    ConstDeclaration(symbols);
                     Accept(Symbols.Semicolon);
                 } while (_context.SymbolCode == Symbols.Ident);
+                if (!SymbolBelong(followers))
+                {
+                    ListError(6);
+                    SkipTo(followers);
+                }
             }
         }
 
-        private void ConstDeclaration()
+        private void ConstDeclaration(IEnumerable<int> followers)
         {
-            Accept(Symbols.Ident);
-            Accept(Symbols.Equal);
-            Const();
-        }
-
-        private void Const()
-        {
-            switch (_context.SymbolCode)
+            if (!SymbolBelong(Starters.ConstDeclaration))
             {
-                case Symbols.Intc:
-                    _lexicalAnalyzerModule.NextSymbol();
-                    break;
-                case Symbols.Floatc:
-                    _lexicalAnalyzerModule.NextSymbol();
-                    break;
-                case Symbols.Stringc:
-                    _lexicalAnalyzerModule.NextSymbol();
-                    break;
-                case Symbols.Charc:
-                    _lexicalAnalyzerModule.NextSymbol();
-                    break;
-                case Symbols.Ident:
-                    _lexicalAnalyzerModule.NextSymbol();
-                    break;
-                default:
-                    if (_context.SymbolCode == Symbols.Minus ||
-                        _context.SymbolCode == Symbols.Plus)
-                    {
-                        _lexicalAnalyzerModule.NextSymbol();
-                        if (_context.SymbolCode == Symbols.Intc ||
-                            _context.SymbolCode == Symbols.Floatc ||
-                            _context.SymbolCode == Symbols.Ident)
-                            _lexicalAnalyzerModule.NextSymbol();
-                    }
-                    break;
+                ListError(18);
+                SkipTo2(Starters.ConstDeclaration, followers);
+            }
+            if (SymbolBelong(Starters.ConstDeclaration))
+            {
+                Accept(Symbols.Ident);
+                Accept(Symbols.Equal);
+                Const(followers);
+                if (!SymbolBelong(followers))
+                {
+                    ListError(6);
+                    SkipTo(followers);
+                }
             }
         }
 
-        private void TypePart()
+        // TODO: вещественное с E
+        private void Const(IEnumerable<int> followers)
         {
+            if (!SymbolBelong(Starters.Const))
+            {
+                ListError(18);
+                SkipTo2(Starters.Const, followers);
+            }
+            if (SymbolBelong(Starters.Const))
+            {
+                switch (_context.SymbolCode)
+                {
+                    case Symbols.Intc:
+                        Accept(Symbols.Intc);
+                        break;
+                    case Symbols.Floatc:
+                        Accept(Symbols.Floatc);
+                        break;
+                    case Symbols.Stringc:
+                        Accept(Symbols.Stringc);
+                        break;
+                    case Symbols.Charc:
+                        Accept(Symbols.Charc);
+                        break;
+                    case Symbols.Ident:
+                        Accept(Symbols.Ident);
+                        break;
+                    default:
+                        if (_context.SymbolCode == Symbols.Minus ||
+                            _context.SymbolCode == Symbols.Plus)
+                        {
+                            _lexicalAnalyzerModule.NextSymbol();
+                            if (_context.SymbolCode == Symbols.Intc ||
+                                _context.SymbolCode == Symbols.Floatc ||
+                                _context.SymbolCode == Symbols.Ident)
+                                _lexicalAnalyzerModule.NextSymbol();
+                        }
+                        break;
+                }
+                if (!SymbolBelong(followers))
+                {
+                    ListError(6);
+                    SkipTo(followers);
+                }
+            }
+        }
+
+        private void TypePart(IEnumerable<int> followers)
+        {
+            if (!SymbolBelong(Starters.TypePart))
+            {
+                ListError(18);
+                SkipTo2(Starters.TypePart, followers);
+            }
             if (_context.SymbolCode == Keywords.Typesy)
             {
                 Accept(Keywords.Typesy);
+                var symbols = Union(Followers.TypeDeclaration, followers);
                 do
                 {
-                    TypeDeclaration();
+                    TypeDeclaration(symbols);
                     Accept(Symbols.Semicolon);
                 } while (_context.SymbolCode == Symbols.Ident);
+                if (!SymbolBelong(followers))
+                {
+                    ListError(6);
+                    SkipTo(followers);
+                }
             }
         }
 
-        private void TypeDeclaration()
+        private void TypeDeclaration(IEnumerable<int> followers)
         {
-            Accept(Symbols.Ident);
-            Accept(Symbols.Equal);
-            Type();
-        }
-
-        private void Type()
-        {
-            switch (_context.SymbolCode)
+            if (!SymbolBelong(Starters.TypeDeclaration))
             {
-                case Symbols.Arrow:
-                    ReferenceType();
-                    break;
-                default:
-                    if (_context.SymbolCode == Keywords.Arraysy ||
-                        _context.SymbolCode == Keywords.Recordsy ||
-                        _context.SymbolCode == Keywords.Setsy ||
-                        _context.SymbolCode == Keywords.Filesy ||
-                        _context.SymbolCode == Keywords.Packedsy)
-                        CompositeType();
-                    if (_context.SymbolCode == Symbols.Intc ||
-                        _context.SymbolCode == Symbols.Floatc ||
-                        _context.SymbolCode == Symbols.Charc ||
-                        _context.SymbolCode == Symbols.Stringc ||
-                        _context.SymbolCode == Symbols.Plus ||
-                        _context.SymbolCode == Symbols.Minus ||
-                        _context.SymbolCode == Symbols.Ident ||
-                        _context.SymbolCode == Symbols.Leftpar)
-                        SimpleType();
-                    break;
+                ListError(18);
+                SkipTo2(Starters.TypeDeclaration, followers);
+            }
+            if (SymbolBelong(Starters.TypeDeclaration))
+            {
+                Accept(Symbols.Ident);
+                Accept(Symbols.Equal);
+                Type(followers);
+                if (!SymbolBelong(followers))
+                {
+                    ListError(6);
+                    SkipTo(followers);
+                }
             }
         }
 
-        // TODO: косяк - два indent, неоднозначность
-        private void SimpleType()
+        private void Type(IEnumerable<int> followers)
         {
-            switch (_context.SymbolCode)
+            if (!SymbolBelong(Starters.Type))
             {
-                case Symbols.Leftpar:
-                    EnumerationType();
-                    break;
-                case Symbols.Ident:
-                    TypeName();
-                    break;
-                default:
-                    if (_context.SymbolCode == Symbols.Intc ||
+                ListError(18);
+                SkipTo2(Starters.Type, followers);
+            }
+            if (SymbolBelong(Starters.Type))
+            {
+                if (_context.SymbolCode == Symbols.Intc ||
+                    _context.SymbolCode == Symbols.Floatc ||
+                    _context.SymbolCode == Symbols.Charc ||
+                    _context.SymbolCode == Symbols.Stringc ||
+                    _context.SymbolCode == Symbols.Plus ||
+                    _context.SymbolCode == Symbols.Minus ||
+                    _context.SymbolCode == Symbols.Ident ||
+                    _context.SymbolCode == Symbols.Leftpar)
+                    SimpleType(followers);
+                else if (_context.SymbolCode == Keywords.Arraysy)
+                    CompositeType(followers);
+                if (!SymbolBelong(followers))
+                {
+                    ListError(6);
+                    SkipTo(followers);
+                }
+            }
+        }
+        
+        private void SimpleType(IEnumerable<int> followers)
+        {
+            if (!SymbolBelong(Starters.SimpleType))
+            {
+                ListError(18);
+                SkipTo2(Starters.SimpleType, followers);
+            }
+            if (SymbolBelong(Starters.SimpleType))
+            {
+                if (_context.SymbolCode == Symbols.Leftpar)
+                    EnumerationType(followers);
+                else if (_context.SymbolCode == Symbols.Ident)
+                    Accept(Symbols.Ident);
+                else if (_context.SymbolCode == Symbols.Intc ||
                         _context.SymbolCode == Symbols.Floatc ||
                         _context.SymbolCode == Symbols.Charc ||
                         _context.SymbolCode == Symbols.Stringc ||
                         _context.SymbolCode == Symbols.Plus ||
                         _context.SymbolCode == Symbols.Minus ||
                         _context.SymbolCode == Symbols.Ident)
-                        LimitedType();
-                    break;
+                    LimitedType(followers);
+                if (!SymbolBelong(followers))
+                {
+                    ListError(6);
+                    SkipTo(followers);
+                }
             }
         }
 
-        private void EnumerationType()
+        private void EnumerationType(IEnumerable<int> followers)
         {
-            Accept(Symbols.Leftpar);
-            do
+            if (!SymbolBelong(Starters.EnumerationType))
             {
+                ListError(18);
+                SkipTo2(Starters.EnumerationType, followers);
+            }
+            if (SymbolBelong(Starters.EnumerationType))
+            {
+                Accept(Symbols.Leftpar);
                 Accept(Symbols.Ident);
-                Accept(Symbols.Comma);
-            } while (_context.SymbolCode == Symbols.Ident);
-            Accept(Symbols.Rightpar);
-        }
-
-        private void TypeName()
-        {
-            Accept(Symbols.Ident);
-        }
-
-        private void LimitedType()
-        {
-            Const();
-            Accept(Symbols.Twopoints);
-            Const();
-        }
-
-        private void ReferenceType()
-        {
-            Accept(Symbols.Arrow);
-            TypeName();
-        }
-
-        private void CompositeType()
-        {
-            if (_context.SymbolCode == Keywords.Packedsy)
-                _lexicalAnalyzerModule.NextSymbol();
-            UnpackedCompositeType();
-        }
-
-        private void UnpackedCompositeType()
-        {
-            switch (_context.SymbolCode)
-            {
-                case Keywords.Arraysy:
-                    ArrayType();
-                    break;
-                case Keywords.Recordsy:
-                    RecordType();
-                    break;
-                case Keywords.Setsy:
-                    SetType();
-                    break;
-                case Keywords.Filesy:
-                    FileType();
-                    break;
-            }
-        }
-
-        private void ArrayType()
-        {
-            Accept(Keywords.Arraysy);
-            Accept(Symbols.Lbracket);
-            SimpleType();
-            while (_context.SymbolCode == Symbols.Comma)
-            {
-                _lexicalAnalyzerModule.NextSymbol();
-                SimpleType();
-            }
-            Accept(Symbols.Rbracket);
-            Accept(Keywords.Ofsy);
-            ComponentType();
-        }
-
-        private void ComponentType()
-        {
-            Type();
-        }
-
-        private void RecordType()
-        {
-            Accept(Keywords.Recordsy);
-            FieldList();
-            Accept(Keywords.Endsy);
-        }
-
-        private void FieldList()
-        {
-            switch (_context.SymbolCode)
-            {
-                case Symbols.Ident:
-                    FixedPart();
-                    if (_context.SymbolCode == Keywords.Casesy)
-                        VariantPart();
-                    break;
-                case Keywords.Casesy:
-                    VariantPart();
-                    break;
-            }
-        }
-
-        private void FixedPart()
-        {
-            RecordingSection();
-            while (_context.SymbolCode == Symbols.Semicolon)
-            {
-                Accept(Symbols.Semicolon);
-                RecordingSection();
-            }
-        }
-
-        private void RecordingSection()
-        {
-            if (_context.SymbolCode == Symbols.Ident)
-            {
-                FieldName();
                 while (_context.SymbolCode == Symbols.Comma)
                 {
                     Accept(Symbols.Comma);
-                    FieldName();
+                    Accept(Symbols.Ident);
                 }
-                Accept(Symbols.Colon);
-                Type();
-            }
-        }
-
-        private void FieldName()
-        {
-            Accept(Symbols.Ident);
-        }
-
-        private void VariantPart()
-        {
-            Accept(Keywords.Casesy);
-            FeatureField();
-            TypeName();
-            Accept(Keywords.Ofsy);
-            Variant();
-            while (_context.SymbolCode == Symbols.Semicolon)
-            {
-                Accept(Symbols.Semicolon);
-                Variant();
-            }
-        }
-
-        private void FeatureField()
-        {
-            if (_context.SymbolCode == Symbols.Ident)
-            {
-                FieldName();
-                Accept(Symbols.Colon);
-            }
-        }
-
-        private void Variant()
-        {
-            if (_context.SymbolCode == Symbols.Intc ||
-                _context.SymbolCode == Symbols.Floatc ||
-                _context.SymbolCode == Symbols.Charc ||
-                _context.SymbolCode == Symbols.Stringc ||
-                _context.SymbolCode == Symbols.Plus ||
-                _context.SymbolCode == Symbols.Minus ||
-                _context.SymbolCode == Symbols.Ident)
-            {
-                VariantTagList();
-                Accept(Symbols.Colon);
-                Accept(Symbols.Leftpar);
-                FieldList();
                 Accept(Symbols.Rightpar);
+                if (!SymbolBelong(followers))
+                {
+                    ListError(6);
+                    SkipTo(followers);
+                }
             }
         }
 
-        private void VariantTagList()
+        private void LimitedType(IEnumerable<int> followers)
         {
-            VariantTag();
-            while (_context.SymbolCode == Symbols.Comma)
+            if (!SymbolBelong(Starters.LimitedType))
             {
-                Accept(Symbols.Comma);
-                VariantTag();
+                ListError(18);
+                SkipTo2(Starters.LimitedType, followers);
+            }
+            if (SymbolBelong(Starters.LimitedType))
+            {
+                var symbols = Union(Followers.LimitedTypeFirstConst, followers);
+                Const(symbols);
+                Accept(Symbols.Twopoints);
+                Const(followers);
+                if (!SymbolBelong(followers))
+                {
+                    ListError(6);
+                    SkipTo(followers);
+                }
             }
         }
 
-        private void VariantTag()
+        private void CompositeType(IEnumerable<int> followers)
         {
-            Const();
+            if (!SymbolBelong(Starters.CompositeType))
+            {
+                ListError(18);
+                SkipTo2(Starters.CompositeType, followers);
+            }
+            if (SymbolBelong(Starters.CompositeType))
+            {
+                ArrayType(followers);
+                if (!SymbolBelong(followers))
+                {
+                    ListError(6);
+                    SkipTo(followers);
+                }
+            }
         }
 
-        private void SetType()
+        private void ArrayType(IEnumerable<int> followers)
         {
-            Accept(Keywords.Setsy);
-            Accept(Keywords.Ofsy);
-            BaseType();
+            if (!SymbolBelong(Starters.ArrayType))
+            {
+                ListError(18);
+                SkipTo2(Starters.ArrayType, followers);
+            }
+            if (SymbolBelong(Starters.ArrayType))
+            {
+                Accept(Keywords.Arraysy);
+                Accept(Symbols.Lbracket);
+                var symbols = Union(Followers.SimpleType, followers);
+                SimpleType(symbols);
+                while (_context.SymbolCode == Symbols.Comma)
+                {
+                    Accept(Symbols.Comma);
+                    SimpleType(symbols);
+                }
+                Accept(Symbols.Rbracket);
+                Accept(Keywords.Ofsy);
+                Type(followers);
+                if (!SymbolBelong(followers))
+                {
+                    ListError(6);
+                    SkipTo(followers);
+                }
+            }
         }
 
-        private void BaseType()
+        private void VarPart(IEnumerable<int> followers)
         {
-            SimpleType();
-        }
-
-        private void FileType()
-        {
-            Accept(Keywords.Filesy);
-            Accept(Keywords.Ofsy);
-            Type();
-        }
-
-        private void VarPart()
-        {
-            if (_context.SymbolCode == Keywords.Varsy)
+            if (!SymbolBelong(Starters.VarPart))
+            {
+                ListError(18);
+                SkipTo2(Starters.VarPart, followers);
+            }
+            if (SymbolBelong(Starters.VarPart))
             {
                 Accept(Keywords.Varsy);
+                var symbols = Union(Followers.VarDeclaration, followers);
                 do
                 {
-                    VarDeclaration();
+                    VarDeclaration(symbols);
                     Accept(Symbols.Semicolon);
                 } while (_context.SymbolCode == Symbols.Ident);
-            }
-        }
-
-        private void VarDeclaration()
-        {
-            Accept(Symbols.Ident);
-            while (_context.SymbolCode == Symbols.Comma)
-            {
-                _lexicalAnalyzerModule.NextSymbol();
-                Accept(Symbols.Ident);
-            }
-            Accept(Symbols.Colon);
-            Type();
-        }
-
-        private void StatementsPart()
-        {
-            CompoundStatement();
-        }
-
-        private void CompoundStatement()
-        {
-            Accept(Keywords.Beginsy);
-            Statement();
-            while (_context.SymbolCode == Symbols.Semicolon)
-            {
-                Accept(Symbols.Semicolon);
-                Statement();
-            }
-            Accept(Keywords.Endsy);
-        }
-
-        private void Statement()
-        {
-            if (_context.SymbolCode == Symbols.Intc)
-                Tag();
-            UntaggedStatement();
-        }
-
-        private void Tag()
-        {
-            Accept(Symbols.Intc);
-        }
-
-        private void UntaggedStatement()
-        {
-            switch (_context.SymbolCode)
-            {
-                case Symbols.Ident:
-                    SimpleStatement();
-                    break;
-                default:
-                    if (_context.SymbolCode == Keywords.Beginsy ||
-                        _context.SymbolCode == Keywords.Ifsy)
-                        ComplexStatement();
-                    break;
-            }
-        }
-
-        private void SimpleStatement()
-        {
-            if (_context.SymbolCode == Symbols.Ident)
-            {
-                AssignmnetStatement();
-            }
-        }
-
-        private void AssignmnetStatement()
-        {
-            // TODO: так то еще можно функции присваивать, но делать этого я конечно же не буду
-            Variable();
-            Accept(Symbols.Assign);
-            Expression();
-        }
-
-        private void Variable()
-        {
-            Accept(Symbols.Ident);
-            while (_context.SymbolCode == Symbols.Lbracket ||
-                   _context.SymbolCode == Symbols.Point ||
-                   _context.SymbolCode == Symbols.Arrow)
-                switch (_context.SymbolCode)
+                if (!SymbolBelong(followers))
                 {
-                    case Symbols.Lbracket:
-                        _lexicalAnalyzerModule.NextSymbol();
-                        Expression();
-                        while (_context.SymbolCode == Symbols.Comma)
-                        {
-                            _lexicalAnalyzerModule.NextSymbol();
-                            Expression();
-                        }
-                        Accept(Symbols.Lbracket);
-                        break;
-                    case Symbols.Point:
-                        _lexicalAnalyzerModule.NextSymbol();
-                        Accept(Symbols.Ident);
-                        break;
-                    case Symbols.Arrow:
-                        _lexicalAnalyzerModule.NextSymbol();
-                        break;
+                    ListError(6);
+                    SkipTo(followers);
                 }
-        }
-
-        private void Expression()
-        {
-            SimpleExpression();
-            if (_context.SymbolCode == Symbols.Equal ||
-                _context.SymbolCode == Symbols.Latergreater ||
-                _context.SymbolCode == Symbols.Later ||
-                _context.SymbolCode == Symbols.Laterequal ||
-                _context.SymbolCode == Symbols.Greaterequal ||
-                _context.SymbolCode == Symbols.Greater ||
-                _context.SymbolCode == Keywords.Insy)
-            {
-                _lexicalAnalyzerModule.NextSymbol();
-                SimpleExpression();
             }
         }
 
-        private void SimpleExpression()
+        private void VarDeclaration(IEnumerable<int> followers)
         {
-            Sign();
-            Addend();
-            if (_context.SymbolCode == Symbols.Plus ||
-                _context.SymbolCode == Symbols.Minus ||
-                _context.SymbolCode == Keywords.Orsy)
+            if (!SymbolBelong(Starters.VarDeclaration))
             {
-                AdditiveOperation();
-                Addend();
+                ListError(18);
+                SkipTo2(Starters.VarDeclaration, followers);
+            }
+            if (SymbolBelong(Starters.VarDeclaration))
+            {
+                Accept(Symbols.Ident);
+                while (_context.SymbolCode == Symbols.Comma)
+                {
+                    Accept(Symbols.Comma);
+                    Accept(Symbols.Ident);
+                }
+                Accept(Symbols.Colon);
+                Type(followers);
+                if (!SymbolBelong(followers))
+                {
+                    ListError(6);
+                    SkipTo(followers);
+                }
             }
         }
 
-        private void Sign()
+        private void StatementsPart(IEnumerable<int> followers)
         {
+            CompoundStatement(followers);
+        }
+
+        private void CompoundStatement(IEnumerable<int> followers)
+        {
+            if (!SymbolBelong(Starters.CompoundStatement))
+            {
+                ListError(18);
+                SkipTo2(Starters.CompoundStatement, followers);
+            }
+            if (SymbolBelong(Starters.CompoundStatement))
+            {
+                Accept(Keywords.Beginsy);
+                var symbols = Union(Followers.Statement, followers);
+                Statement(symbols);
+                while (_context.SymbolCode == Symbols.Semicolon)
+                {
+                    Accept(Symbols.Semicolon);
+                    Statement(symbols);
+                }
+                Accept(Keywords.Endsy);
+                if (!SymbolBelong(followers))
+                {
+                    ListError(6);
+                    SkipTo(followers);
+                }
+            }
+        }
+
+        private void Statement(IEnumerable<int> followers)
+        {
+            if (!SymbolBelong(Starters.Statement))
+            {
+                ListError(18);
+                SkipTo2(Starters.Statement, followers);
+            }
+            if (SymbolBelong(Starters.Statement))
+            {
+                if (_context.SymbolCode == Symbols.Ident)
+                    SimpleStatement(followers);
+                else if (_context.SymbolCode == Keywords.Beginsy ||
+                            _context.SymbolCode == Keywords.Ifsy ||
+                            _context.SymbolCode == Keywords.Whilesy)
+                    ComplexStatement(followers);
+                if (!SymbolBelong(followers))
+                {
+                    ListError(6);
+                    SkipTo(followers);
+                }
+            }
+        }
+
+        private void SimpleStatement(IEnumerable<int> followers)
+        {
+            if (!SymbolBelong(Starters.SimpleStatement))
+            {
+                ListError(18);
+                SkipTo2(Starters.SimpleStatement, followers);
+            }
+            if (SymbolBelong(Starters.SimpleStatement))
+            {
+                AssignmentStatement(followers);
+                if (!SymbolBelong(followers))
+                {
+                    ListError(6);
+                    SkipTo(followers);
+                }
+            }
+        }
+
+        private void AssignmentStatement(IEnumerable<int> followers)
+        {
+            if (!SymbolBelong(Starters.AssignmnetStatement))
+            {
+                ListError(18);
+                SkipTo2(Starters.AssignmnetStatement, followers);
+            }
+            if (SymbolBelong(Starters.AssignmnetStatement))
+            {
+                var symbols = Union(Followers.AssignmentStatementVariable, followers);
+                Variable(symbols);
+                Accept(Symbols.Assign);
+                Expression(followers);
+                if (!SymbolBelong(followers))
+                {
+                    ListError(6);
+                    SkipTo(followers);
+                }
+            }
+        }
+
+        private void Variable(IEnumerable<int> followers)
+        {
+            if (!SymbolBelong(Starters.Variable))
+            {
+                ListError(18);
+                SkipTo2(Starters.Variable, followers);
+            }
+            if (SymbolBelong(Starters.Variable))
+            {
+                Accept(Symbols.Ident);
+                while (_context.SymbolCode == Symbols.Lbracket)
+                {
+                    Accept(Symbols.Lbracket);
+                    var symbols = Union(Followers.VariableExpression, followers);
+                    Expression(symbols);
+                    while (_context.SymbolCode == Symbols.Comma)
+                    {
+                        Accept(Symbols.Comma);
+                        Expression(symbols);
+                    }
+                    Accept(Symbols.Rbracket);
+                }
+                if (!SymbolBelong(followers))
+                {
+                    ListError(6);
+                    SkipTo(followers);
+                }
+            }
+        }
+
+        private void Expression(IEnumerable<int> followers)
+        {
+            if (!SymbolBelong(Starters.Expression))
+            {
+                ListError(18);
+                SkipTo2(Starters.Expression, followers);
+            }
+            if (SymbolBelong(Starters.Expression))
+            {
+                var symbols = Union(Followers.ExpressionSimpleExpression, followers);
+                SimpleExpression(symbols);
+                if (_context.SymbolCode == Symbols.Equal ||
+                    _context.SymbolCode == Symbols.Latergreater ||
+                    _context.SymbolCode == Symbols.Later ||
+                    _context.SymbolCode == Symbols.Laterequal ||
+                    _context.SymbolCode == Symbols.Greaterequal ||
+                    _context.SymbolCode == Symbols.Greater)
+                {
+                    _lexicalAnalyzerModule.NextSymbol();
+                    SimpleExpression(followers);
+                }
+                if (!SymbolBelong(followers))
+                {
+                    ListError(6);
+                    SkipTo(followers);
+                }
+            }
+        }
+
+        private void SimpleExpression(IEnumerable<int> followers)
+        {
+            if (!SymbolBelong(Starters.SimpleExpression))
+            {
+                ListError(18);
+                SkipTo2(Starters.SimpleExpression, followers);
+            }
+            if (SymbolBelong(Starters.SimpleExpression))
+            {
+                var symbols = Union(Followers.SimpleExpressionSign, followers);
+                if (_context.SymbolCode == Symbols.Plus ||
+                    _context.SymbolCode == Symbols.Minus)
+                    Sign(symbols);
+                symbols = Union(Followers.SimpleExpressionAddend, followers);
+                Term(symbols);
+                if (_context.SymbolCode == Symbols.Plus ||
+                    _context.SymbolCode == Symbols.Minus ||
+                    _context.SymbolCode == Keywords.Orsy)
+                {
+                    symbols = Union(Followers.SimpleExpressionSign, followers);
+                    AdditiveOperation(symbols);
+                    Term(followers);
+                }
+                if (!SymbolBelong(followers))
+                {
+                    ListError(6);
+                    SkipTo(followers);
+                }
+            }
+        }
+
+        private void Sign(IEnumerable<int> followers)
+        {
+            if (!SymbolBelong(Starters.Sign))
+            {
+                ListError(18);
+                SkipTo2(Starters.Sign, followers);
+            }
             if (_context.SymbolCode == Symbols.Plus ||
                 _context.SymbolCode == Symbols.Minus)
-                _lexicalAnalyzerModule.NextSymbol();
-        }
-
-        private void Addend()
-        {
-            Multiplier();
-            if (_context.SymbolCode == Symbols.Star ||
-                _context.SymbolCode == Symbols.Slash ||
-                _context.SymbolCode == Keywords.Divsy ||
-                _context.SymbolCode == Keywords.Modsy ||
-                _context.SymbolCode == Keywords.Andsy)
             {
-                MultiplicativeOperation();
-                Multiplier();
+                _lexicalAnalyzerModule.NextSymbol();
+                if (!SymbolBelong(followers))
+                {
+                    ListError(6);
+                    SkipTo(followers);
+                }
             }
         }
 
-        private void AdditiveOperation()
+        private void Term(IEnumerable<int> followers)
         {
-            if (_context.SymbolCode == Symbols.Plus ||
-                _context.SymbolCode == Symbols.Minus ||
-                _context.SymbolCode == Keywords.Orsy)
-                _lexicalAnalyzerModule.NextSymbol();
+            if (!SymbolBelong(Starters.Term))
+            {
+                ListError(18);
+                SkipTo2(Starters.Term, followers);
+            }
+            if (SymbolBelong(Starters.Term))
+            {
+                var symbols = Union(Followers.AddendMultiplier, followers);
+                Factor(symbols);
+                if (_context.SymbolCode == Symbols.Star ||
+                    _context.SymbolCode == Symbols.Slash ||
+                    _context.SymbolCode == Keywords.Divsy ||
+                    _context.SymbolCode == Keywords.Modsy ||
+                    _context.SymbolCode == Keywords.Andsy)
+                {
+                    symbols = Union(Followers.AddendMultiplicativeOperation, followers);
+                    MultiplicativeOperation(symbols);
+                    Factor(followers);
+                }
+                if (!SymbolBelong(followers))
+                {
+                    ListError(6);
+                    SkipTo(followers);
+                }
+            }
         }
 
         // TODO: неоднозначность ident
-        private void Multiplier()
+        private void Factor(IEnumerable<int> followers)
         {
-            switch (_context.SymbolCode)
+            if (!SymbolBelong(Starters.Factor))
             {
-                case Symbols.Ident:
-                    Variable();
-                    break;
-                case Symbols.Leftpar:
-                    _lexicalAnalyzerModule.NextSymbol();
-                    Expression();
-                    Accept(Symbols.Rightpar);
-                    break;
-                case Keywords.Notsy:
-                    _lexicalAnalyzerModule.NextSymbol();
-                    Multiplier();
-                    break;
-                default:
-                    if (_context.SymbolCode == Symbols.Intc ||
-                        _context.SymbolCode == Symbols.Floatc ||
-                        _context.SymbolCode == Symbols.Charc ||
-                        _context.SymbolCode == Symbols.Stringc ||
-                        _context.SymbolCode == Symbols.Ident ||
-                        _context.SymbolCode == Keywords.Nilsy)
-                        _lexicalAnalyzerModule.NextSymbol();
-                    break;
+                ListError(18);
+                SkipTo2(Starters.Factor, followers);
+            }
+            if (SymbolBelong(Starters.Factor))
+            {
+                switch (_context.SymbolCode)
+                {
+                    case Symbols.Ident:
+                        Variable(followers);
+                        break;
+                    case Symbols.Leftpar:
+                        Accept(Symbols.Leftpar);
+                        var symbols = Union(Followers.FactorExpression, followers);
+                        Expression(symbols);
+                        Accept(Symbols.Rightpar);
+                        break;
+                    case Keywords.Notsy:
+                        Accept(Keywords.Notsy);
+                        Factor(followers);
+                        break;
+                    default:
+                        if (_context.SymbolCode == Symbols.Intc ||
+                            _context.SymbolCode == Symbols.Floatc ||
+                            _context.SymbolCode == Symbols.Charc ||
+                            _context.SymbolCode == Symbols.Stringc ||
+                            _context.SymbolCode == Symbols.Ident ||
+                            _context.SymbolCode == Keywords.Nilsy)
+                            _lexicalAnalyzerModule.NextSymbol();
+                        break;
+                }
+                if (!SymbolBelong(followers))
+                {
+                    ListError(6);
+                    SkipTo(followers);
+                }
             }
         }
 
-        private void MultiplicativeOperation()
+        private void MultiplicativeOperation(IEnumerable<int> followers)
         {
-            if (_context.SymbolCode == Symbols.Star ||
-                _context.SymbolCode == Symbols.Slash ||
-                _context.SymbolCode == Keywords.Divsy ||
-                _context.SymbolCode == Keywords.Modsy ||
-                _context.SymbolCode == Keywords.Andsy)
+            if (!SymbolBelong(Starters.MultiplicativeOperation))
+            {
+                ListError(18);
+                SkipTo2(Starters.MultiplicativeOperation, followers);
+            }
+            if (SymbolBelong(Starters.MultiplicativeOperation))
+            {
                 _lexicalAnalyzerModule.NextSymbol();
-        }
-
-        private void ComplexStatement()
-        {
-            switch (_context.SymbolCode)
-            {
-                case Keywords.Beginsy:
-                    CompoundStatement();
-                    break;
-                case Keywords.Ifsy:
-                    ConditionalStatement();
-                    break;
-                case Keywords.Whilesy:
-                    WhileStatement();
-                    break;
+                if (!SymbolBelong(followers))
+                {
+                    ListError(6);
+                    SkipTo(followers);
+                }
             }
         }
 
-        private void ConditionalStatement()
+        private void AdditiveOperation(IEnumerable<int> followers)
         {
-            Accept(Keywords.Ifsy);
-            Expression();
-            Accept(Keywords.Thensy);
-            Statement();
-            if (_context.SymbolCode == Keywords.Elsesy)
+            if (!SymbolBelong(Starters.AdditiveOperation))
             {
-                Accept(Keywords.Elsesy);
-                Statement();
+                ListError(18);
+                SkipTo2(Starters.AdditiveOperation, followers);
+            }
+            if (SymbolBelong(Starters.AdditiveOperation))
+            {
+                _lexicalAnalyzerModule.NextSymbol();
+                if (!SymbolBelong(followers))
+                {
+                    ListError(6);
+                    SkipTo(followers);
+                }
             }
         }
 
-        private void WhileStatement()
+        private void ComplexStatement(IEnumerable<int> followers)
         {
-            Accept(Keywords.Whilesy);
-            Expression();
-            Accept(Keywords.Dosy);
-            Statement();
+            if (!SymbolBelong(Starters.ComplexStatement))
+            {
+                ListError(18);
+                SkipTo2(Starters.ComplexStatement, followers);
+            }
+            if (SymbolBelong(Starters.ComplexStatement))
+            {
+                switch (_context.SymbolCode)
+                {
+                    case Keywords.Beginsy:
+                        CompoundStatement(followers);
+                        break;
+                    case Keywords.Ifsy:
+                        ConditionalStatement(followers);
+                        break;
+                    case Keywords.Whilesy:
+                        WhileStatement(followers);
+                        break;
+                }
+                if (!SymbolBelong(followers))
+                {
+                    ListError(6);
+                    SkipTo(followers);
+                }
+            }
+        }
+
+        private void ConditionalStatement(IEnumerable<int> followers)
+        {
+            if (!SymbolBelong(Starters.ConditionalStatement))
+            {
+                ListError(18);
+                SkipTo2(Starters.ConditionalStatement, followers);
+            }
+            if (SymbolBelong(Starters.ConditionalStatement))
+            {
+                Accept(Keywords.Ifsy);
+                var symbols = Union(Followers.ConditionalStatementExpression, followers);
+                Expression(symbols);
+                Accept(Keywords.Thensy);
+                symbols = Union(Followers.ConditionalStatementStatement, followers);
+                Statement(symbols);
+                if (_context.SymbolCode == Keywords.Elsesy)
+                {
+                    Accept(Keywords.Elsesy);
+                    Statement(symbols);
+                }
+                if (!SymbolBelong(followers))
+                {
+                    ListError(6);
+                    SkipTo(followers);
+                }
+            }
+        }
+
+        private void WhileStatement(IEnumerable<int> followers)
+        {
+            if (!SymbolBelong(Starters.WhileStatement))
+            {
+                ListError(18);
+                SkipTo2(Starters.WhileStatement, followers);
+            }
+            if (SymbolBelong(Starters.WhileStatement))
+            {
+                Accept(Keywords.Whilesy);
+                var symbols = Union(Followers.WhileStatementExpression, followers);
+                Expression(symbols);
+                Accept(Keywords.Dosy);
+                Statement(followers);
+                if (!SymbolBelong(followers))
+                {
+                    ListError(6);
+                    SkipTo(followers);
+                }
+            }
         }
     }
 }

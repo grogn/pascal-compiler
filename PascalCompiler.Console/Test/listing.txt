@@ -1,0 +1,20 @@
+   1  program Evklid;
+   2  { определение наибольшего общего делителя }
+   3    Const 
+   4      G = 9.8; 
+   5      e = 222.14;
+   6    type 
+   7      hex = array[1..10] of integer;
+   8      TMonthType = (January, February, March, April,May, June, July, August, September, October, November, December);
+   9    var M, N :integer;
+  10    a:TMonthType;
+  11    begin
+  12     hex[1] := 123;
+  13     a := December;
+  14     while M <> N do
+  15       begin
+  16         if M > N
+  17           then M := M-N
+  18           else N := N - M
+  19       end
+  20  end.

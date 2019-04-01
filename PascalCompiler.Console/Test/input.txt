@@ -1,7 +1,20 @@
-﻿Program Lesson1_Program3;
-Var       
-    Num1, Num2, Sum : Integer;
-Begin {no semicolon}
-    Sum := Num1 + Num2; {addition}
-	a
-End.
+﻿program Evklid;
+{ определение наибольшего общего делителя }
+  Const 
+    G = 9.8; 
+    e = 222.14;
+  type 
+    hex = array[1..10] of integer;
+    TMonthType = (January, February, March, April,May, June, July, August, September, October, November, December);
+  var M, N :integer;
+  a:TMonthType;
+  begin
+   hex[1] := 123;
+   a := December;
+   while M <> N do
+     begin
+       if M > N
+         then M := M-N
+         else N := N - M
+     end
+end.

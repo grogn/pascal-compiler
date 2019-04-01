@@ -42,6 +42,11 @@ namespace PascalCompiler.Core.Modules
             return _context.CharNumber < _context.Line.Length ? _context.Line[_context.CharNumber] : '\n';
         }
 
+        public char PeekNextNextChar()
+        {
+            return _context.CharNumber + 1 < _context.Line.Length ? _context.Line[_context.CharNumber + 1] : '\n';
+        }
+
         public char NextChar()
         {
             if (_context.CharNumber != _context.Line.Length)

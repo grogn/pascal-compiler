@@ -187,6 +187,9 @@ namespace PascalCompiler.Core.Modules
                 return Symbols.Intc;
             }
 
+            var nextChar = _ioModule.PeekNextNextChar();
+            if (nextChar < '0' || nextChar > '9')
+                return Symbols.Intc;
             _ioModule.NextChar();
             _context.Symbol += _currentChar;
             _currentChar = _ioModule.PeekNextChar();

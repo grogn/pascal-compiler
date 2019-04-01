@@ -41,7 +41,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Compiler.cs" />
+    <Compile Include="Constants\Followers.cs" />
     <Compile Include="Constants\Keywords.cs" />
+    <Compile Include="Constants\Starters.cs" />
     <Compile Include="Context.cs" />
     <Compile Include="Error.cs" />
     <Compile Include="Constants\ErrorDescriptions.cs" />
