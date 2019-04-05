@@ -331,6 +331,7 @@ namespace PascalCompiler.Core.Modules
                 _currentChar = _ioModule.NextChar();
                 _context.Symbol = _currentChar.ToString();
             }
+            _context.SymbolPosition = _context.CharNumber;
 
             switch (_currentChar)
             {

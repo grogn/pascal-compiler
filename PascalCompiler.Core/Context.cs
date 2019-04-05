@@ -22,6 +22,7 @@ namespace PascalCompiler.Core
 
         public string Symbol { get; set; }
         public int SymbolCode { get; set; }
+        public int SymbolPosition { get; set; }
 
         public ISourceCodeDispatcher SourceCodeDispatcher;
 

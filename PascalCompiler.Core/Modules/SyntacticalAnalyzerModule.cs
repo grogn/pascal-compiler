@@ -20,7 +20,7 @@ namespace PascalCompiler.Core.Modules
 
         private void ListError(int errorCode)
         {
-            _context.OnError(new Error(_context.CharNumber, errorCode));
+            _context.OnError(new Error(_context.SymbolPosition, errorCode));
         }
 
         private void Accept(int symbolCode)
@@ -28,7 +28,7 @@ namespace PascalCompiler.Core.Modules
             if (_context.SymbolCode == symbolCode)
                 _lexicalAnalyzerModule.NextSymbol();
             else
-                _context.OnError(new Error(_context.CharNumber, symbolCode));
+                _context.OnError(new Error(_context.SymbolPosition, symbolCode));
         }
 
         private bool SymbolBelong(IEnumerable<int> starters)
@@ -226,7 +226,7 @@ namespace PascalCompiler.Core.Modules
         {
             if (!SymbolBelong(Starters.Type))
             {
-                ListError(18);
+                ListError(10);
                 SkipTo2(Starters.Type, followers);
             }
             if (SymbolBelong(Starters.Type))
@@ -254,7 +254,7 @@ namespace PascalCompiler.Core.Modules
         {
             if (!SymbolBelong(Starters.SimpleType))
             {
-                ListError(18);
+                ListError(10);
                 SkipTo2(Starters.SimpleType, followers);
             }
             if (SymbolBelong(Starters.SimpleType))
@@ -283,7 +283,7 @@ namespace PascalCompiler.Core.Modules
         {
             if (!SymbolBelong(Starters.EnumerationType))
             {
-                ListError(18);
+                ListError(10);
                 SkipTo2(Starters.EnumerationType, followers);
             }
             if (SymbolBelong(Starters.EnumerationType))
@@ -308,7 +308,7 @@ namespace PascalCompiler.Core.Modules
         {
             if (!SymbolBelong(Starters.LimitedType))
             {
-                ListError(18);
+                ListError(10);
                 SkipTo2(Starters.LimitedType, followers);
             }
             if (SymbolBelong(Starters.LimitedType))
@@ -329,7 +329,7 @@ namespace PascalCompiler.Core.Modules
         {
             if (!SymbolBelong(Starters.CompositeType))
             {
-                ListError(18);
+                ListError(10);
                 SkipTo2(Starters.CompositeType, followers);
             }
             if (SymbolBelong(Starters.CompositeType))
@@ -347,7 +347,7 @@ namespace PascalCompiler.Core.Modules
         {
             if (!SymbolBelong(Starters.ArrayType))
             {
-                ListError(18);
+                ListError(10);
                 SkipTo2(Starters.ArrayType, followers);
             }
             if (SymbolBelong(Starters.ArrayType))
@@ -400,7 +400,7 @@ namespace PascalCompiler.Core.Modules
         {
             if (!SymbolBelong(Starters.VarDeclaration))
             {
-                ListError(18);
+                ListError(2);
                 SkipTo2(Starters.VarDeclaration, followers);
             }
             if (SymbolBelong(Starters.VarDeclaration))
@@ -430,7 +430,7 @@ namespace PascalCompiler.Core.Modules
         {
             if (!SymbolBelong(Starters.CompoundStatement))
             {
-                ListError(18);
+                ListError(22);
                 SkipTo2(Starters.CompoundStatement, followers);
             }
             if (SymbolBelong(Starters.CompoundStatement))
@@ -456,7 +456,7 @@ namespace PascalCompiler.Core.Modules
         {
             if (!SymbolBelong(Starters.Statement))
             {
-                ListError(18);
+                ListError(22);
                 SkipTo2(Starters.Statement, followers);
             }
             if (SymbolBelong(Starters.Statement))
@@ -479,7 +479,7 @@ namespace PascalCompiler.Core.Modules
         {
             if (!SymbolBelong(Starters.SimpleStatement))
             {
-                ListError(18);
+                ListError(22);
                 SkipTo2(Starters.SimpleStatement, followers);
             }
             if (SymbolBelong(Starters.SimpleStatement))
@@ -497,7 +497,7 @@ namespace PascalCompiler.Core.Modules
         {
             if (!SymbolBelong(Starters.AssignmnetStatement))
             {
-                ListError(18);
+                ListError(22);
                 SkipTo2(Starters.AssignmnetStatement, followers);
             }
             if (SymbolBelong(Starters.AssignmnetStatement))
@@ -518,7 +518,7 @@ namespace PascalCompiler.Core.Modules
         {
             if (!SymbolBelong(Starters.Variable))
             {
-                ListError(18);
+                ListError(22);
                 SkipTo2(Starters.Variable, followers);
             }
             if (SymbolBelong(Starters.Variable))
@@ -548,7 +548,7 @@ namespace PascalCompiler.Core.Modules
         {
             if (!SymbolBelong(Starters.Expression))
             {
-                ListError(18);
+                ListError(23);
                 SkipTo2(Starters.Expression, followers);
             }
             if (SymbolBelong(Starters.Expression))
@@ -577,7 +577,7 @@ namespace PascalCompiler.Core.Modules
         {
             if (!SymbolBelong(Starters.SimpleExpression))
             {
-                ListError(18);
+                ListError(22);
                 SkipTo2(Starters.SimpleExpression, followers);
             }
             if (SymbolBelong(Starters.SimpleExpression))
@@ -608,7 +608,7 @@ namespace PascalCompiler.Core.Modules
         {
             if (!SymbolBelong(Starters.Sign))
             {
-                ListError(18);
+                ListError(22);
                 SkipTo2(Starters.Sign, followers);
             }
             if (_context.SymbolCode == Symbols.Plus ||
@@ -627,7 +627,7 @@ namespace PascalCompiler.Core.Modules
         {
             if (!SymbolBelong(Starters.Term))
             {
-                ListError(18);
+                ListError(22);
                 SkipTo2(Starters.Term, followers);
             }
             if (SymbolBelong(Starters.Term))
@@ -657,7 +657,7 @@ namespace PascalCompiler.Core.Modules
         {
             if (!SymbolBelong(Starters.Factor))
             {
-                ListError(18);
+                ListError(22);
                 SkipTo2(Starters.Factor, followers);
             }
             if (SymbolBelong(Starters.Factor))
@@ -699,7 +699,7 @@ namespace PascalCompiler.Core.Modules
         {
             if (!SymbolBelong(Starters.MultiplicativeOperation))
             {
-                ListError(18);
+                ListError(22);
                 SkipTo2(Starters.MultiplicativeOperation, followers);
             }
             if (SymbolBelong(Starters.MultiplicativeOperation))
@@ -717,7 +717,7 @@ namespace PascalCompiler.Core.Modules
         {
             if (!SymbolBelong(Starters.AdditiveOperation))
             {
-                ListError(18);
+                ListError(22);
                 SkipTo2(Starters.AdditiveOperation, followers);
             }
             if (SymbolBelong(Starters.AdditiveOperation))
@@ -735,7 +735,7 @@ namespace PascalCompiler.Core.Modules
         {
             if (!SymbolBelong(Starters.ComplexStatement))
             {
-                ListError(18);
+                ListError(22);
                 SkipTo2(Starters.ComplexStatement, followers);
             }
             if (SymbolBelong(Starters.ComplexStatement))
@@ -764,7 +764,7 @@ namespace PascalCompiler.Core.Modules
         {
             if (!SymbolBelong(Starters.ConditionalStatement))
             {
-                ListError(18);
+                ListError(22);
                 SkipTo2(Starters.ConditionalStatement, followers);
             }
             if (SymbolBelong(Starters.ConditionalStatement))
@@ -792,7 +792,7 @@ namespace PascalCompiler.Core.Modules
         {
             if (!SymbolBelong(Starters.WhileStatement))
             {
-                ListError(18);
+                ListError(22);
                 SkipTo2(Starters.WhileStatement, followers);
             }
             if (SymbolBelong(Starters.WhileStatement))
