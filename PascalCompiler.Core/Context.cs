@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PascalCompiler.Core.Structures;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,9 +21,17 @@ namespace PascalCompiler.Core
 
         public int ErrorNumber { get; set; }
 
-        public string Symbol { get; set; }
+        public string SymbolName { get; set; }
+        public Symbol Symbol { get; set; }
         public int SymbolCode { get; set; }
         public int SymbolPosition { get; set; }
+
+        /// <summary>
+        /// Таблица имен
+        /// </summary>
+        public SymbolTable SymbolTable { get; }
+
+        public Scope LocalScope { get; set; }
 
         public ISourceCodeDispatcher SourceCodeDispatcher;
 
@@ -31,6 +40,8 @@ namespace PascalCompiler.Core
             SourceCodeDispatcher = sourceCodeDispatcher;
             LineNumber = 1;
             ErrorNumber = 1;
+            SymbolTable = new SymbolTable();
+            LocalScope = new Scope();
         }
 
         public void OnError(Error error)

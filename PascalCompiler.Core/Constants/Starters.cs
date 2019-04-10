@@ -140,12 +140,14 @@ namespace PascalCompiler.Core.Constants
             Keywords.Beginsy,
             Keywords.Ifsy,
             Keywords.Whilesy,
-            Symbols.Ident
+            Symbols.Ident,
+            Symbols.Semicolon
         };
 
         public static readonly int[] SimpleStatement = new[]
         {
-            Symbols.Ident
+            Symbols.Ident,
+            Symbols.Semicolon
         };
 
         public static readonly int[] AssignmnetStatement = new[]

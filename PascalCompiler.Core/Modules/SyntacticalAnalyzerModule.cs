@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using PascalCompiler.Core.Constants;
+using PascalCompiler.Core.Structures;
 
 namespace PascalCompiler.Core.Modules
 {
@@ -53,8 +54,103 @@ namespace PascalCompiler.Core.Modules
                 _lexicalAnalyzerModule.NextSymbol();
         }
 
+        /// <summary>
+        /// Создание элемента стека для текущей области действия
+        /// </summary>
+        private void OpenScope()
+        {
+            var scope = new Scope
+            {
+                EnclosingScope = _context.LocalScope
+            };
+            _context.LocalScope = scope;
+        }
+
+        /// <summary>
+        /// Удаление таблиц текущей области действия
+        /// </summary>
+        private void CloseScope()
+        {
+            _context.LocalScope = _context.LocalScope.EnclosingScope;
+        }
+
+        private void InitFictiousScope()
+        {
+            var boolType = new Structures.Types.Enum();
+            _context.LocalScope.TypeTable.Add(boolType);
+            var booleanSymbol = new Symbol("boolean");
+            _context.SymbolTable.Add(booleanSymbol);
+            var booleanIdentifier = new Identifier
+            {
+                Symbol = booleanSymbol,
+                Class = IdentifierClass.Types,
+                Type = boolType
+            };
+            _context.LocalScope.IdentifierTable.Add(booleanIdentifier);
+
+            var falseSymbol = new Symbol("false");
+            _context.SymbolTable.Add(falseSymbol);
+            boolType.Symbols.Add(falseSymbol);
+            var falseIdentifier = new Identifier
+            {
+                Type = boolType,
+                Class = IdentifierClass.Consts,
+                Symbol = falseSymbol
+            };
+            _context.LocalScope.IdentifierTable.Add(falseIdentifier);
+
+            var trueSymbol = new Symbol("true");
+            _context.SymbolTable.Add(trueSymbol);
+            boolType.Symbols.Add(trueSymbol);
+            var trueIdentifier = new Identifier
+            {
+                Type = boolType,
+                Class = IdentifierClass.Consts,
+                Symbol = trueSymbol
+            };
+            _context.LocalScope.IdentifierTable.Add(trueIdentifier);
+
+            var intType = new Structures.Types.Scalar();
+            _context.LocalScope.TypeTable.Add(intType);
+            var integerSymbol = new Symbol("integer");
+            _context.SymbolTable.Add(integerSymbol);
+            var integerIdentifier = new Identifier
+            {
+                Symbol = integerSymbol,
+                Class = IdentifierClass.Types,
+                Type = intType
+            };
+            _context.LocalScope.IdentifierTable.Add(integerIdentifier);
+
+            var realType = new Structures.Types.Scalar();
+            _context.LocalScope.TypeTable.Add(realType);
+            var realSymbol = new Symbol("real");
+            _context.SymbolTable.Add(realSymbol);
+            var realIdentifier = new Identifier
+            {
+                Symbol = realSymbol,
+                Class = IdentifierClass.Types,
+                Type = realType
+            };
+            _context.LocalScope.IdentifierTable.Add(realIdentifier);
+
+            var charType = new Structures.Types.Scalar();
+            _context.LocalScope.TypeTable.Add(charType);
+            var charSymbol = new Symbol("char");
+            _context.SymbolTable.Add(charSymbol);
+            var charIdentifier = new Identifier
+            {
+                Symbol = charSymbol,
+                Class = IdentifierClass.Types,
+                Type = charType
+            };
+            _context.LocalScope.IdentifierTable.Add(charIdentifier);
+        }
+
         public void Program()
         {
+            InitFictiousScope();
+            OpenScope();
             _lexicalAnalyzerModule.NextSymbol();
             Accept(Keywords.Programsy);
             Accept(Symbols.Ident);
@@ -222,8 +318,9 @@ namespace PascalCompiler.Core.Modules
             }
         }
 
-        private void Type(IEnumerable<int> followers)
+        private Structures.Type Type(IEnumerable<int> followers)
         {
+            Structures.Type type = null;
             if (!SymbolBelong(Starters.Type))
             {
                 ListError(10);
@@ -239,19 +336,22 @@ namespace PascalCompiler.Core.Modules
                     _context.SymbolCode == Symbols.Minus ||
                     _context.SymbolCode == Symbols.Ident ||
                     _context.SymbolCode == Symbols.Leftpar)
-                    SimpleType(followers);
+                    type = SimpleType(followers);
                 else if (_context.SymbolCode == Keywords.Arraysy)
-                    CompositeType(followers);
+                    type = CompositeType(followers);
                 if (!SymbolBelong(followers))
                 {
                     ListError(6);
                     SkipTo(followers);
                 }
             }
+
+            return type;
         }
         
-        private void SimpleType(IEnumerable<int> followers)
+        private Structures.Type SimpleType(IEnumerable<int> followers)
         {
+            Structures.Type type = null;
             if (!SymbolBelong(Starters.SimpleType))
             {
                 ListError(10);
@@ -260,9 +360,12 @@ namespace PascalCompiler.Core.Modules
             if (SymbolBelong(Starters.SimpleType))
             {
                 if (_context.SymbolCode == Symbols.Leftpar)
-                    EnumerationType(followers);
+                    type = EnumerationType(followers);
                 else if (_context.SymbolCode == Symbols.Ident)
+                {
                     Accept(Symbols.Ident);
+                    type = new Structures.Types.Scalar();
+                }
                 else if (_context.SymbolCode == Symbols.Intc ||
                         _context.SymbolCode == Symbols.Floatc ||
                         _context.SymbolCode == Symbols.Charc ||
@@ -270,17 +373,20 @@ namespace PascalCompiler.Core.Modules
                         _context.SymbolCode == Symbols.Plus ||
                         _context.SymbolCode == Symbols.Minus ||
                         _context.SymbolCode == Symbols.Ident)
-                    LimitedType(followers);
+                    type = LimitedType(followers);
                 if (!SymbolBelong(followers))
                 {
                     ListError(6);
                     SkipTo(followers);
                 }
             }
+            return type;
         }
 
-        private void EnumerationType(IEnumerable<int> followers)
+        private Structures.Type EnumerationType(IEnumerable<int> followers)
         {
+            var type = new Structures.Types.Enum();
+            _context.LocalScope.TypeTable.Add(type);
             if (!SymbolBelong(Starters.EnumerationType))
             {
                 ListError(10);
@@ -288,13 +394,22 @@ namespace PascalCompiler.Core.Modules
             }
             if (SymbolBelong(Starters.EnumerationType))
             {
-                Accept(Symbols.Leftpar);
-                Accept(Symbols.Ident);
-                while (_context.SymbolCode == Symbols.Comma)
+                do
                 {
-                    Accept(Symbols.Comma);
-                    Accept(Symbols.Ident);
-                }
+                    _lexicalAnalyzerModule.NextSymbol();
+                    if (_context.SymbolCode == Symbols.Ident)
+                    {
+                        var idenifier = new Identifier
+                        {
+                            Symbol = _context.Symbol,
+                            Class = IdentifierClass.Consts,
+                            Type = type
+                        };
+                        idenifier.ConstValue.Enum = _context.Symbol;
+                        _context.LocalScope.IdentifierTable.Add(idenifier);
+                        type.Symbols.Add(_context.Symbol);
+                    }
+                } while (_context.SymbolCode == Symbols.Comma);
                 Accept(Symbols.Rightpar);
                 if (!SymbolBelong(followers))
                 {
@@ -302,9 +417,10 @@ namespace PascalCompiler.Core.Modules
                     SkipTo(followers);
                 }
             }
+            return type;
         }
 
-        private void LimitedType(IEnumerable<int> followers)
+        private Structures.Type LimitedType(IEnumerable<int> followers)
         {
             if (!SymbolBelong(Starters.LimitedType))
             {
@@ -323,9 +439,10 @@ namespace PascalCompiler.Core.Modules
                     SkipTo(followers);
                 }
             }
+            return new Structures.Types.Limited();
         }
 
-        private void CompositeType(IEnumerable<int> followers)
+        private Structures.Type CompositeType(IEnumerable<int> followers)
         {
             if (!SymbolBelong(Starters.CompositeType))
             {
@@ -341,6 +458,7 @@ namespace PascalCompiler.Core.Modules
                     SkipTo(followers);
                 }
             }
+            return new Structures.Types.Array();
         }
 
         private void ArrayType(IEnumerable<int> followers)
@@ -405,14 +523,28 @@ namespace PascalCompiler.Core.Modules
             }
             if (SymbolBelong(Starters.VarDeclaration))
             {
+                var variableList = new List<Identifier>();
+                var variableIdentifier = new Identifier
+                {
+                    Symbol = _context.Symbol,
+                    Class = IdentifierClass.Vars
+                };
+                variableList.Add(variableIdentifier);
                 Accept(Symbols.Ident);
                 while (_context.SymbolCode == Symbols.Comma)
                 {
                     Accept(Symbols.Comma);
+                    variableIdentifier = new Identifier
+                    {
+                        Symbol = _context.Symbol,
+                        Class = IdentifierClass.Vars
+                    };
+                    variableList.Add(variableIdentifier);
                     Accept(Symbols.Ident);
                 }
                 Accept(Symbols.Colon);
-                Type(followers);
+                var type = Type(followers);
+                variableList.ForEach(x => x.Type = type);
                 if (!SymbolBelong(followers))
                 {
                     ListError(6);
@@ -461,7 +593,8 @@ namespace PascalCompiler.Core.Modules
             }
             if (SymbolBelong(Starters.Statement))
             {
-                if (_context.SymbolCode == Symbols.Ident)
+                if (_context.SymbolCode == Symbols.Ident ||
+                    _context.SymbolCode == Symbols.Semicolon)
                     SimpleStatement(followers);
                 else if (_context.SymbolCode == Keywords.Beginsy ||
                             _context.SymbolCode == Keywords.Ifsy ||
@@ -484,7 +617,14 @@ namespace PascalCompiler.Core.Modules
             }
             if (SymbolBelong(Starters.SimpleStatement))
             {
-                AssignmentStatement(followers);
+                if (_context.SymbolCode == Symbols.Semicolon)
+                {
+                    //Accept(Symbols.Semicolon);
+                }
+                else
+                {
+                    AssignmentStatement(followers);
+                }
                 if (!SymbolBelong(followers))
                 {
                     ListError(6);

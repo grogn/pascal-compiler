@@ -1,4 +1,5 @@
 ﻿using PascalCompiler.Core.Constants;
+using PascalCompiler.Core.Structures;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,13 +38,13 @@ namespace PascalCompiler.Core.Modules
             if (_currentChar == '=')
             {
                 _currentChar = _ioModule.NextChar();
-                _context.Symbol += _currentChar;
+                _context.SymbolName += _currentChar;
                 symbol = Symbols.Laterequal;
             }
             else if (_currentChar == '>')
             {
                 _currentChar = _ioModule.NextChar();
-                _context.Symbol += _currentChar;
+                _context.SymbolName += _currentChar;
                 symbol = Symbols.Latergreater;
             }
             else
@@ -62,7 +63,7 @@ namespace PascalCompiler.Core.Modules
             if (_currentChar == '=')
             {
                 _currentChar = _ioModule.NextChar();
-                _context.Symbol += _currentChar;
+                _context.SymbolName += _currentChar;
                 symbol = Symbols.Greaterequal;
             }
             else
@@ -81,7 +82,7 @@ namespace PascalCompiler.Core.Modules
             if (_currentChar == '=')
             {
                 _currentChar = _ioModule.NextChar();
-                _context.Symbol += _currentChar;
+                _context.SymbolName += _currentChar;
                 symbol = Symbols.Assign;
             }
             else
@@ -100,7 +101,7 @@ namespace PascalCompiler.Core.Modules
             if (_currentChar == '.')
             {
                 _currentChar = _ioModule.NextChar();
-                _context.Symbol += _currentChar;
+                _context.SymbolName += _currentChar;
                 symbol = Symbols.Twopoints;
             }
             else
@@ -151,7 +152,7 @@ namespace PascalCompiler.Core.Modules
             if (_currentChar == ')')
             {
                 _currentChar = _ioModule.NextChar();
-                _context.Symbol += _currentChar;
+                _context.SymbolName += _currentChar;
                 ListError(85);
                 symbol = Symbols.Rcomment;
             }
@@ -171,7 +172,7 @@ namespace PascalCompiler.Core.Modules
             while (_currentChar >= '0' && _currentChar <= '9')
             {
                 _currentChar = _ioModule.NextChar();
-                _context.Symbol += _currentChar;
+                _context.SymbolName += _currentChar;
                 var digit = _currentChar - '0';
                 if (!listIntegerError && (integerPart < MaxInt / 10 || (integerPart == MaxInt / 10 && digit <= MaxInt % 10)))
                     integerPart = 10 * integerPart + digit;
@@ -191,7 +192,7 @@ namespace PascalCompiler.Core.Modules
             if (nextChar < '0' || nextChar > '9')
                 return Symbols.Intc;
             _ioModule.NextChar();
-            _context.Symbol += _currentChar;
+            _context.SymbolName += _currentChar;
             _currentChar = _ioModule.PeekNextChar();
 
             if (_currentChar < '0' || _currentChar > '9')
@@ -205,7 +206,7 @@ namespace PascalCompiler.Core.Modules
             while (_currentChar >= '0' && _currentChar <= '9')
             {
                 _currentChar = _ioModule.NextChar();
-                _context.Symbol += _currentChar;
+                _context.SymbolName += _currentChar;
                 var digit = _currentChar - '0';
                 if (!listFloatError && (floatPart < MaxInt / 10 || (floatPart == MaxInt / 10 && digit <= MaxInt % 10)))
                     floatPart = 10 * floatPart + digit;
@@ -223,7 +224,7 @@ namespace PascalCompiler.Core.Modules
         private int ScanString()
         {
             _ioModule.NextChar();
-            _context.Symbol += _context.Char;
+            _context.SymbolName += _context.Char;
             if (_context.Char == '\'' || _context.Char == '\n')
             {
                 ListError(75);
@@ -231,11 +232,11 @@ namespace PascalCompiler.Core.Modules
             }
 
             _ioModule.NextChar();
-            _context.Symbol += _context.Char;
+            _context.SymbolName += _context.Char;
 
             if (_context.Char == '\'')
             {
-                _context.Symbol += _context.Char;
+                _context.SymbolName += _context.Char;
                 return Symbols.Charc;
             }
 
@@ -250,7 +251,7 @@ namespace PascalCompiler.Core.Modules
             var listError = false;
             while (_context.Char != '\'')
             {
-                _context.Symbol += _context.Char;
+                _context.SymbolName += _context.Char;
                 if (length++ > MaxString)
                     listError = true;
                 _ioModule.NextChar();
@@ -260,7 +261,7 @@ namespace PascalCompiler.Core.Modules
                     return Symbols.Stringc;
                 }
             }
-            _context.Symbol += _context.Char;
+            _context.SymbolName += _context.Char;
             if (listError)
                 ListError(76);
 
@@ -277,19 +278,20 @@ namespace PascalCompiler.Core.Modules
                     _currentChar == '_') && nameLength <= MaxName)
             {
                 _currentChar = _ioModule.NextChar();
-                _context.Symbol += _currentChar;
+                _context.SymbolName += _currentChar;
                 nameLength++;
                 _currentChar = _ioModule.PeekNextChar();
             }
 
             int symbol;
-            if (Keywords.ByName.ContainsKey(_context.Symbol.ToLower()))
+            if (Keywords.ByName.ContainsKey(_context.SymbolName.ToLower()))
             {
-                symbol = Keywords.ByName[_context.Symbol.ToLower()];
+                symbol = Keywords.ByName[_context.SymbolName.ToLower()];
             }
             else
             {
                 symbol = Symbols.Ident;
+                _context.Symbol = _context.SymbolTable.Add(_context.SymbolName);
             }
 
             return symbol;
@@ -324,12 +326,12 @@ namespace PascalCompiler.Core.Modules
         {
             var symbolCode = Symbols.Endoffile;
             _currentChar = _ioModule.NextChar();
-            _context.Symbol = _currentChar.ToString();
+            _context.SymbolName = _currentChar.ToString();
             // TODO: табы под вопросом - неправильно отображается позиция ошибки
             while (_currentChar == ' ' || _currentChar == '\t')
             {
                 _currentChar = _ioModule.NextChar();
-                _context.Symbol = _currentChar.ToString();
+                _context.SymbolName = _currentChar.ToString();
             }
             _context.SymbolPosition = _context.CharNumber;
 
@@ -436,7 +438,7 @@ namespace PascalCompiler.Core.Modules
             }
 
             _context.SymbolCode = symbolCode;
-            Logger.LogSymbol(_context.Symbol);
+            Logger.LogSymbol(_context.SymbolName);
             if (_context.SymbolCode == Symbols.Endofline)
                 return NextSymbol();
             return symbolCode;
