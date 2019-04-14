@@ -284,6 +284,7 @@ namespace PascalCompiler.Core.Modules
             }
 
             int symbol;
+            _context.SymbolName = _context.SymbolName.ToLower();
             if (Keywords.ByName.ContainsKey(_context.SymbolName.ToLower()))
             {
                 symbol = Keywords.ByName[_context.SymbolName.ToLower()];
@@ -291,7 +292,7 @@ namespace PascalCompiler.Core.Modules
             else
             {
                 symbol = Symbols.Ident;
-                _context.Symbol = _context.SymbolTable.Add(_context.SymbolName);
+                _context.Symbol = _context.SymbolTable.ExperimentalAdd(_context.SymbolName, _context.SymbolPosition);
             }
 
             return symbol;

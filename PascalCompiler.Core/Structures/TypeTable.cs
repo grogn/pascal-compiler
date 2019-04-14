@@ -1,6 +1,7 @@
 ﻿using PascalCompiler.Core.Constants;
 using PascalCompiler.Core.Structures.Types;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace PascalCompiler.Core.Structures
 {

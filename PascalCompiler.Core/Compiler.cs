@@ -28,6 +28,7 @@ namespace PascalCompiler.Core
         public void Start()
         {
             _syntacticalAnalyzerModule.Program();
+            GeneratorModule.Flush();
             _sourceCodeDispatcher.Close();
             Logger.Close();
         }

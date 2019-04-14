@@ -49,6 +49,7 @@
     <Compile Include="Context.cs" />
     <Compile Include="Error.cs" />
     <Compile Include="Constants\ErrorDescriptions.cs" />
+    <Compile Include="Modules\GeneratorModule.cs" />
     <Compile Include="Structures\ConstValue.cs" />
     <Compile Include="Structures\IdentifierTable.cs" />
     <Compile Include="Structures\Type.cs" />

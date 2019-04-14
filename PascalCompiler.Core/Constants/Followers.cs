@@ -114,18 +114,6 @@ namespace PascalCompiler.Core.Constants
             Keywords.Andsy,
         };
 
-        public static readonly int[] AddendMultiplicativeOperation = new[]
-        {
-            Symbols.Ident,
-            Symbols.Intc,
-            Symbols.Floatc,
-            Symbols.Charc,
-            Symbols.Stringc,
-            Keywords.Nilsy,
-            Symbols.Leftpar,
-            Keywords.Notsy
-        };
-
         public static readonly int[] FactorExpression = new[]
         {
             Symbols.Rightpar

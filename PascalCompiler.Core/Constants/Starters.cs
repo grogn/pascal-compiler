@@ -150,7 +150,7 @@ namespace PascalCompiler.Core.Constants
             Symbols.Semicolon
         };
 
-        public static readonly int[] AssignmnetStatement = new[]
+        public static readonly int[] AssignmentStatement = new[]
         {
             Symbols.Ident
         };

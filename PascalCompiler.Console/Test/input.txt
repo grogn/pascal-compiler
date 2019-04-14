@@ -1,30 +1,20 @@
-﻿program 1Evklid;
-{ определение наибольшего общего делителя }
-  Const 
-    G = 9.8; 
-    e = 222.14;
-  type 
-    hex = array[1..10 of integer;
-    TMonthType = (January, February, March, April,May, June, July, August, September, October, November, December);
-  var ***1** M, N :integer;
-  b,f (a , , f);
-  f1, f1:(a1,a2, ,a3) 56;
-  a:TMonthType;
-  mas1,mas2 :
-   array [(s,d),'d'..d,] integer;
-  f,k :2..6;
-  d, : real;
-  d1,,d2: ; ***
+﻿program example;
+  var
+  a,b,c: boolean;
+  d,e:integer;
+  f,g:real;
 begin
-   hex[:1] := 123*12;;;;;;;;;;;;;;
-   ы
-   test := ((1 + 2)+3*23.55)-(   15/23412.55)));
-   a := December;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-   while M <> N do
-   
-     begin
-         if (a <> 3)
-		 then N := 3
-         else N := N - M
-     end
+  a := false;
+  b := true;
+  b := a or b;
+  c := b or not (3 < 4);
+  writeln(c);
+  d := 4;
+  g := 3 - d * (5 / 2 + (1 + 2 + 1)) - (22 / (d * 2 + 2));
+  writeln(d);
+  writeln(g);
+  f:= 1.5;
+  g:= 10.10;
+  g := (10.0 / 8 + f);
+  writeln(g);
 end.
